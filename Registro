@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #FFFFFF;
+            font-family: Arial, sans-serif;
+        }
+        .registro-form {
+            background-color: #CE93D8;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            width: 300px;
+            text-align: center;
+            color: black;
+        }
+        .registro-form h2 {
+            margin-bottom: 20px;
+        }
+        .registro-form label {
+            display: block;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+        .registro-form input, .registro-form select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+        }
+        .registro-form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #622C71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="registro-form">
+        <h2>Registro</h2>
+        <form>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required>
+
+            <label for="correo">Correo:</label>
+            <input type="email" id="correo" name="correo" required>
+
+            <label for="contrasena">Contraseña:</label>
+            <input type="password" id="contrasena" name="contrasena" required>
+
+            <label for="tipo-usuario">Tipo de usuario:</label>
+            <select id="tipo-usuario" name="tipo-usuario" required>
+                <option value="asesor">Asesor</option>
+                <option value="estudiante">Estudiante</option>
+            </select>
+
+            <button type="submit">Registrarse</button>
+        </form>
+    </div>
+</body>
+</html>
