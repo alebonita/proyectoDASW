@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #FFFFFF;
+            font-family: Arial, sans-serif;
+        }
+
+        .login-container {
+            background-color: #CE93D8;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-container h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            background-color: white;
+            border-radius: 5px;
+            padding: 5px;
+        }
+
+        .input-group img {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+
+        .input-group input {
+            width: 100%;
+            border: none;
+            padding: 10px;
+            outline: none;
+            border-radius: 5px;
+        }
+
+        .login-container button {
+            background-color: #622C71;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .login-container a {
+            color: #FFE699;
+            text-decoration: none;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .login-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <div class="input-group">
+            <img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="icono-usuario">
+            <input type="text" id="username" placeholder="Usuario">
+        </div>
+        <div class="input-group">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQQf2jvwDCd7HKlRqm4c7hHDUGuqhVtaBZSg&s" alt="icono-contraseña">
+            <input type="password" id="password" placeholder="Contraseña">
+        </div>
+        <button onclick="login()">Ingresar</button>
+        <a href="#">Regístrate aquí</a>
+    </div>
+
+    <script>
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username && password) {
+                alert(`Bienvenido, ${username}!`);
+            } else {
+                alert('Por favor, completa ambos campos para continuar.');
+            }
+        }
+    </script>
+</body>
+</html>
