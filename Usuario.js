@@ -1,20 +1,15 @@
-class Usuario {
+export default class Usuario {
   constructor(id, nombre, correo, tipo) {
     this._id = id;
     this._nombre = nombre;
     this._correo = correo;
-    this._tipo = tipo; // ya sea tipo asesor , usuario o administrador 
+    this._tipo = tipo; // 'admin', 'asesor', 'alumno'
   }
 
   // Getters
-set uuid(value) {
-        if (!value) throw new Error("UUID no puede ser nulo o vacío");
-        this._uuid = value;
-      }
-    
-      get uuid() {
-        return this._uuid;
-      }
+  get id() {
+    return this._id;
+  }
 
   get nombre() {
     return this._nombre;
