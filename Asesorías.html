@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asesorías</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #F9F9F9;
+    }
+    .header {
+      background-color: #622C71;
+      color: white;
+      padding: 15px;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #CE93D8;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid #622C71;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #622C71;
+      color: white;
+    }
+    td {
+      color: black;
+    }
+    .info-icon {
+      cursor: pointer;
+      color: #622C71;
+      font-weight: bold;
+    }
+    .dropdown-content {
+      display: none;
+      padding: 15px;
+      background-color: #FFE699;
+      border: 1px solid #622C71;
+      border-radius: 5px;
+    }
+    .dropdown-content p {
+      margin: 5px 0;
+    }
+    .dropdown-content button {
+      padding: 10px 20px;
+      background-color: #622C71;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .dropdown-content button:hover:enabled {
+      background-color: #4A1E56;
+    }
+    .dropdown-row td {
+      padding: 0;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">Asesorías</div>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Materia</th>
+        <th>Asesor</th>
+        <th>Horario</th>
+        <th>Modalidad</th>
+        <th>Información</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>123</td>
+        <td>Matemáticas I</td>
+        <td>@usuario_asesor</td>
+        <td>2:00 - 3:00 pm</td>
+        <td>Presencial</td>
+        <td><span class="info-icon" onclick="toggleDropdown(this)">i</span></td>
+      </tr>
+      <tr class="dropdown-row">
+        <td colspan="6">
+          <div class="dropdown-content">
+            <p><strong>Descripción:</strong> Introducción a álgebra, geometría y cálculo.</p>
+            <p><strong>Reseñas:</strong></p>
+            <p>@usuario: "Muy buena asesoría" ⭐⭐⭐⭐⭐</p>
+            <p>@usuario: "Excelente explicación" ⭐⭐⭐⭐</p>
+            <button onclick="toggleInscribir(this)">Inscribir</button>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>458</td>
+        <td>Química</td>
+        <td>@usuario_asesor</td>
+        <td>4:00 - 6:00 pm</td>
+        <td>En línea</td>
+        <td><span class="info-icon" onclick="toggleDropdown(this)">i</span></td>
+      </tr>
+      <tr class="dropdown-row">
+        <td colspan="6">
+          <div class="dropdown-content">
+            <p><strong>Descripción:</strong> Estudio de la estructura atómica y reacciones químicas.</p>
+            <p><strong>Reseñas:</strong></p>
+            <p>@usuario: "Muy interesante" ⭐⭐⭐⭐⭐</p>
+            <p>@usuario: "Aprendí mucho" ⭐⭐⭐⭐</p>
+            <button onclick="toggleInscribir(this)">Inscribir</button>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>198</td>
+        <td>Programación</td>
+        <td>@usuario_asesor</td>
+        <td>9:00 - 11:00 am</td>
+        <td>Presencial</td>
+        <td><span class="info-icon" onclick="toggleDropdown(this)">i</span></td>
+      </tr>
+      <tr class="dropdown-row">
+        <td colspan="6">
+          <div class="dropdown-content">
+            <p><strong>Descripción:</strong> Fundamentos de lenguajes y algoritmos.</p>
+            <p><strong>Reseñas:</strong></p>
+            <p>@usuario: "Clases muy claras" ⭐⭐⭐⭐⭐</p>
+            <p>@usuario: "Lo recomiendo" ⭐⭐⭐⭐</p>
+            <button onclick="toggleInscribir(this)">Inscribir</button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function toggleDropdown(element) {
+      const row = element.closest('tr').nextElementSibling;
+      const dropdown = row.querySelector('.dropdown-content');
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function toggleInscribir(button) {
+      button.innerText = 'Inscrita';
+      button.disabled = true;
+    }
+  </script>
+</body>
+</html>
