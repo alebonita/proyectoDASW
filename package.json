@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@typegoose/auto-increment": "^4.13.0",
     "express": "^5.1.0",
     "mongo": "^0.1.0",
     "mongoose": "^8.14.3",

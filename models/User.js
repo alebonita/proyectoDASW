@@ -1,9 +1,28 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const {AutoIncrement} = require('typegoose/auto-increment');
 
 const userSchema = new mongoose.Schema({
-    nombre: {type: String, required:true},
-    correo: {type: String, required: true, unique:true},
+    ID_usuario:{
+        type: Number, 
+        unique:true
+    },
+    nombre: {
+        type: String, 
+        required:[true, 'Nombre obligatorio'], 
+        trim: true, 
+        maxlength:[100,'Nombre inválido']
+    },
+    correo: {
+        type: String,
+        required: [true, 'El correo es obligatorio'],
+        unique:true,
+        lowercase:true,
+        trim: true,
+        validate:{
+            validator: (email) => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email),
+        }
+    },
     contra: {type: String, required: true},
     tipo_usuario: {type: String, enum:['alumno', 'asesor', 'admin'], default: 'alumno'},
 });
