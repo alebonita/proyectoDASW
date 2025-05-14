@@ -9,23 +9,32 @@ const userSchema = new mongoose.Schema({
     },
     nombre: {
         type: String, 
-        required:[true, 'Nombre obligatorio'], 
+        required:true, 
         trim: true, 
-        maxlength:[100,'Nombre inválido']
+        maxlength:100
     },
     correo: {
         type: String,
-        required: [true, 'El correo es obligatorio'],
+        required: true,
         unique:true,
         lowercase:true,
         trim: true,
-        validate:{
-            validator: (email) => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email),
-        }
+        match: [/^\S+@\S+\.\S+$/, 'Correo inválido']
     },
-    contra: {type: String, required: true},
-    tipo_usuario: {type: String, enum:['alumno', 'asesor', 'admin'], default: 'alumno'},
+    contra: {
+        type: String, 
+        required: true,
+        minlength: 6,
+        select: false
+    },
+    tipo_usuario: {
+        type: String,
+        enum:['alumno', 'asesor', 'admin'],
+        default: 'alumno',
+    }
 });
+
+userSchema.plugin(AutoIncrement, {field: 'ID_usuario', startAt: 1});
 
 userSchema.pre('save', async function (next) {
     if(!this.isModified('contra')) return next();
