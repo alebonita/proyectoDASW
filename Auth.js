@@ -1,8 +1,8 @@
-import Usuario from './Usuario.js';
-import { guardarEnStorage, obtenerDeStorage } from './storage.js';
+const User = require("./models/User");
+const bcrypt = require("bcryptjs");
 
 class Auth {
-  static login(correo, contrasena) {
+  static async login(correo, contrasena) {
     const usuarios = obtenerDeStorage('usuarios') || [];
     const usuario = usuarios.find(u => u.correo === correo && u.contrasena === contrasena);
 
