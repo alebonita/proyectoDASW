@@ -1,11 +1,9 @@
-
-//Esta pantalla es si el asesor se da login 
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clases y Asesorías</title>
+  <title>Asesorías</title>
   <style>
     body {
       margin: 0;
@@ -23,13 +21,9 @@
     }
 
     .container {
-      display: flex;
-      justify-content: space-between;
       padding: 20px;
-    }
-
-    .section {
-      width: 48%;
+      max-width: 800px;
+      margin: 0 auto;
     }
 
     .title {
@@ -53,6 +47,9 @@
       height: 35px;
       font-size: 18px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .card {
@@ -62,6 +59,7 @@
       margin-bottom: 10px;
       border-radius: 8px;
       overflow: hidden;
+      position: relative;
     }
 
     .card img {
@@ -83,32 +81,21 @@
       margin: 2px 0;
     }
 
-    /* Materias estilo tabla */
-    .materias-table {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 5px;
-      margin-top: 10px;
-    }
-
-    .materias-header {
-      background-color: #622C71;
+    .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background-color: #ff5252;
       color: white;
-      font-weight: bold;
-      padding: 8px;
-      text-align: center;
-      border-radius: 4px;
-    }
-
-    .materias-grid {
-      display: contents;
-    }
-
-    .cell {
-      background-color: #FFE699;
-      padding: 10px;
-      border-radius: 4px;
-      color: black;
+      border: none;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   </style>
 </head>
@@ -120,26 +107,10 @@
     <div class="section">
       <div class="title">Asesorías</div>
       <div class="buttons-container">
-        <button onclick="agregarAsesoria()">➕</button>
-        <button onclick="borrarAsesorias()">🗑️</button>
+        <button onclick="agregarAsesoria()">+</button>
         <button onclick="buscarAsesoria()">🔍</button>
       </div>
       <div id="asesorias-container"></div>
-    </div>
-
-    <!-- Materias -->
-    <div class="section">
-      <div class="title">Materias</div>
-      <div class="buttons-container">
-        <button onclick="agregarMateria()">➕</button>
-        <button onclick="borrarMaterias()">🗑️</button>
-        <button onclick="buscarMateria()">🔍</button>
-      </div>
-      <div class="materias-table">
-        <div class="materias-header">Nombre</div>
-        <div class="materias-header">Descripción</div>
-        <div id="materias-container" class="materias-grid"></div>
-      </div>
     </div>
   </div>
 
@@ -161,41 +132,21 @@
       }
     ];
 
-    let materias = [
-      {
-        nombre: "Matemáticas I",
-        descripcion: "Introducción al álgebra, trabajando con ecuaciones, expresiones y funciones básicas."
-      },
-      {
-        nombre: "Química I",
-        descripcion: "Estudia la estructura de la materia, enlaces químicos y reacciones básicas."
-      }
-    ];
-
     function renderizarAsesorias() {
       const contenedor = document.getElementById("asesorias-container");
       contenedor.innerHTML = "";
-      asesorias.forEach((a) => {
+      asesorias.forEach((a, index) => {
         contenedor.innerHTML += `
           <div class="card">
             <img src="${a.imagen}" alt="imagen">
             <div class="card-info">
+              <button class="delete-btn" onclick="eliminarAsesoria(${index})">✕</button>
               <h3>${a.nombre}</h3>
               <p><strong>Horario:</strong> ${a.horario}</p>
               <p><strong>Asesor:</strong> ${a.asesor}</p>
               <p><strong>Modalidad:</strong> ${a.modalidad}</p>
             </div>
           </div>`;
-      });
-    }
-
-    function renderizarMaterias() {
-      const contenedor = document.getElementById("materias-container");
-      contenedor.innerHTML = "";
-      materias.forEach(m => {
-        contenedor.innerHTML += `
-          <div class="cell">${m.nombre}</div>
-          <div class="cell">${m.descripcion}</div>`;
       });
     }
 
@@ -216,23 +167,11 @@
       }
     }
 
-    function agregarMateria() {
-      const nombre = prompt("Nombre de la materia:");
-      const descripcion = prompt("Descripción:");
-      if (nombre && descripcion) {
-        materias.push({ nombre, descripcion });
-        renderizarMaterias();
+    function eliminarAsesoria(index) {
+      if (confirm("¿Estás seguro de que quieres eliminar esta asesoría?")) {
+        asesorias.splice(index, 1);
+        renderizarAsesorias();
       }
-    }
-
-    function borrarAsesorias() {
-      asesorias = [];
-      renderizarAsesorias();
-    }
-
-    function borrarMaterias() {
-      materias = [];
-      renderizarMaterias();
     }
 
     function buscarAsesoria() {
@@ -246,19 +185,7 @@
       }
     }
 
-    function buscarMateria() {
-      const consulta = prompt("Buscar materia por nombre:");
-      if (!consulta) return;
-      const resultado = materias.filter(m => m.nombre.toLowerCase().includes(consulta.toLowerCase()));
-      if (resultado.length > 0) {
-        alert("Se encontraron " + resultado.length + " coincidencias.");
-      } else {
-        alert("No se encontró ninguna materia con ese nombre.");
-      }
-    }
-
     renderizarAsesorias();
-    renderizarMaterias();
   </script>
 </body>
 </html>
