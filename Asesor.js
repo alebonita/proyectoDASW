@@ -9,7 +9,7 @@ class Asesor extends Usuario {
   }
 
   // Getters 
-  get materias() {
+  get materias() {  
     return this._materias;
   }
 
@@ -22,6 +22,7 @@ class Asesor extends Usuario {
     this._materias = nuevasMaterias;
     this._guardarDatos();
   }
+/// prueba de git
 
   // Métodos públicos
   crearAsesoria(materia, horario, cupo, modalidad = "Presencial") {
