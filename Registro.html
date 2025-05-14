@@ -72,5 +72,35 @@
             <button type="submit">Registrarse</button>
         </form>
     </div>
+    <script>
+  document.querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault(); // Evita que el formulario se recargue
+
+    const usuario = {
+      nombre: document.getElementById('nombre').value,
+      correo: document.getElementById('correo').value,
+      contrasena: document.getElementById('contrasena').value,
+      tipo_usuario: document.getElementById('tipo-usuario').value === 'estudiante' ? 'alumno' : 'asesor'
+    };
+
+    try {
+      const response = await fetch('http://localhost:8000/api/registrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(usuario)
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert("¡Registro exitoso!");
+        window.location.href = "Login.html"; // Redirige al login
+      } else {
+        alert(data.error || "Error en el registro");
+      }
+    } catch (error) {
+      alert("Error al conectar con el servidor");
+    }
+  });
+</script>
 </body>
 </html>

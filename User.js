@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const {AutoIncrement} = require('typegoose/auto-increment');
+const AutoIncrement = require('mongoose-sequence')(mongoose);
 
 const userSchema = new mongoose.Schema({
     ID_usuario:{
@@ -31,10 +31,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum:['alumno', 'asesor', 'admin'],
         default: 'alumno',
-    }
+    }, 
+},
+{ 
+    collection: 'users'
 });
 
-userSchema.plugin(AutoIncrement, {field: 'ID_usuario', startAt: 1});
+userSchema.plugin(AutoIncrement, { 
+    inc_field: 'ID_usuario', 
+    startAt: 1 
+});
 
 userSchema.pre('save', async function (next) {
     if(!this.isModified('contra')) return next();

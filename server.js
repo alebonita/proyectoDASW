@@ -1,19 +1,44 @@
-'use strict'
-const express= require("express");
+'use strict';
+const express = require("express");
+const mongoose = require("mongoose"); // Añadido
 const connectDB = require("./db");
-const app= express();
-const port=8000;
+const User = require("./User"); // Importamos el modelo User
+const app = express();
+const port = 8000;
 
-const mongoUrl = "mongodb+srv://admin:Asesorias2025@bdprueba.27ltjcv.mongodb.net/";
+const cors = require('cors');
+app.use(cors()); 
 
-mongoose.connect(mongoUrl)
-.then (() => console.log("Conectado a MongoDB "))
-.catch(err => console.error("Error de conexión", err));
+// Middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Para formularios HTML
 
-app.use(express.json());// Usa express body-parse para parsiar todos los cuerpos requeridos
-app.get('/',
-    (req, res) => res.send('Asesorias ')
-  );
-  app.listen(port, () => {
-    console.log(`Pro  app listening on port ${port}!`);
-  })
+// Conexión a MongoDB (usamos db.js)
+connectDB();
+
+// Ruta de registro
+app.post('/api/registrar', async (req, res) => {
+  console.log("Datos recibidos:", req.body);
+  try {
+    const { nombre, correo, contrasena, tipo_usuario } = req.body;
+    const nuevoUsuario = new User({
+      nombre,
+      correo,
+      contra: contrasena,
+      tipo_usuario: tipo_usuario || 'alumno' // Valor por defecto
+    });
+
+    await nuevoUsuario.save();
+    res.status(201).json({ mensaje: "Usuario registrado exitosamente" });
+  } catch (error) {
+    console.error("Error en registro:", error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Ruta básica
+app.get('/', (req, res) => res.send('Sistema de Asesorías'));
+
+app.listen(port, () => {
+  console.log(`Servidor corriendo en http://localhost:${port}`);
+});

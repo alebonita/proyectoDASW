@@ -1,13 +1,10 @@
 const mongoose = require('mongoose');
 
-const mongoUrl = "mongodb+srv://admin:Asesorias2025@bdprueba.27ltjcv.mongodb.net/";
+const mongoUrl = "mongodb+srv://admin:Asesorias2025@bdprueba.27ltjcv.mongodb.net/AsesoriasBD";
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(mongoUrl, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(mongoUrl); // <- ¡Solo la URL!
     console.log("Conectado a MongoDB");
   } catch (err) {
     console.error("Error de conexión", err);
