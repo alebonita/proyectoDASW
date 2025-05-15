@@ -78,25 +78,53 @@
         <h2>Login</h2>
         <div class="input-group">
             <img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" alt="icono-usuario">
-            <input type="text" id="username" placeholder="Usuario">
+            <input type="text" id="username" placeholder="Correo">
         </div>
         <div class="input-group">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQQf2jvwDCd7HKlRqm4c7hHDUGuqhVtaBZSg&s" alt="icono-contraseña">
-            <input type="password" id="password" placeholder="Contraseña">
+            <input type="password" id="contra" placeholder="Contraseña">
         </div>
         <button onclick="login()">Ingresar</button>
-        <a href="#">Regístrate aquí</a>
+        <a href="Registro.html">Regístrate aquí</a>
     </div>
 
     <script>
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+        async function login() {
+            const correo = document.getElementById('username').value;
+            const contrasena = document.getElementById('contra').value;
 
-            if (username && password) {
-                alert(`Bienvenido, ${username}!`);
-            } else {
-                alert('Por favor, completa ambos campos para continuar.');
+            if (!correo || !contrasena) {
+                alert('Completa ambos campos');
+                return 
+            }
+             try {
+                const response = await fetch('http://localhost:8000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correo, contra: contrasena })
+                });
+
+                const usuario = await response.json();
+
+                if(response.ok){
+                    localStorage.setItem('usuario', JSON.stringify(usuario)); // Guarda datos en el navegador
+                    // Redirección por tipo de usuario
+                    switch(usuario.tipo_usuario) {
+                    case 'admin':
+                        window.location.href = 'admin.html';
+                        break;
+                    case 'asesor':
+                        window.location.href = 'indexAsesor.html';
+                        break;
+                    default: // alumno
+                        window.location.href = 'indexAlumno.html';
+                    }  
+                }else {
+                    alert(usuario.error || 'Usuario Incorrecto');
+                }
+            }catch (error){
+                console.error('Error:', error);
+                alert('Error al conectar con el servidor');
             }
         }
     </script>

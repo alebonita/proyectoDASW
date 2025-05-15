@@ -5,6 +5,7 @@ const connectDB = require("./db");
 const User = require("./User"); // Importamos el modelo User
 const app = express();
 const port = 8000;
+const bcrypt = require('bcryptjs');
 
 const cors = require('cors');
 app.use(cors()); 
@@ -33,6 +34,31 @@ app.post('/api/registrar', async (req, res) => {
   } catch (error) {
     console.error("Error en registro:", error);
     res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  try {
+    const { correo, contra } = req.body;
+    const usuario = await User.findOne({ correo }).select('+contra');
+
+    if (!usuario) {
+      return res.status(401).json({ error: 'Usuario no encontrado' });
+    }
+
+    const contrasenaValida = await bcrypt.compare(contra, usuario.contra);
+    if (!contrasenaValida) {
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
+
+    // Devuelve el usuario SIN la contraseña
+    const usuarioSinContra = usuario.toObject();
+    delete usuarioSinContra.contra;
+    
+    res.json(usuarioSinContra);
+  } catch (error) {
+    console.error("Error en login:", error);
+    res.status(500).json({ error: 'Error en el servidor' });
   }
 });
 
