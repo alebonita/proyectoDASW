@@ -10,43 +10,66 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #FFFFFF;
-            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
         }
         .registro-form {
             background-color: #CE93D8;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            width: 300px;
-            text-align: center;
-            color: black;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            width: 320px;
+            color: #333;
         }
         .registro-form h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: white ;
+            font-size: 24px;
+        }
+        .form-group {
             margin-bottom: 20px;
         }
         .registro-form label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #622C71;
             text-align: left;
         }
-        .registro-form input, .registro-form select {
+        .registro-form input, 
+        .registro-form select {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: none;
-            border-radius: 5px;
+            padding: 12px;
+            border: 2px solid #E1BEE7;
+            border-radius: 8px;
+            background-color: #F3E5F5;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .registro-form input:focus, 
+        .registro-form select:focus {
+            border-color: #AB47BC;
             outline: none;
+            box-shadow: 0 0 0 3px rgba(171, 71, 188, 0.2);
         }
         .registro-form button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background-color: #622C71;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-weight: bold;
+            font-size: 16px;
             cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        .registro-form button:hover {
+            background-color: #4A1C5A;
         }
     </style>
 </head>
@@ -54,20 +77,28 @@
     <div class="registro-form">
         <h2>Registro</h2>
         <form>
-            <label for="nombre">Nombre:</label>
-            <input type="text" id="nombre" name="nombre" required>
-
-            <label for="correo">Correo:</label>
-            <input type="email" id="correo" name="correo" required>
-
-            <label for="contrasena">Contraseña:</label>
-            <input type="password" id="contrasena" name="contrasena" required>
-
-            <label for="tipo-usuario">Tipo de usuario:</label>
-            <select id="tipo-usuario" name="tipo-usuario" required>
-                <option value="asesor">Asesor</option>
-                <option value="estudiante">Estudiante</option>
-            </select>
+            <div class="form-group">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="correo">Correo:</label>
+                <input type="email" id="correo" name="correo" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="contrasena">Contraseña:</label>
+                <input type="password" id="contrasena" name="contrasena" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="tipo-usuario">Tipo de usuario:</label>
+                <select id="tipo-usuario" name="tipo-usuario" required>
+                    <option value="asesor">Asesor</option>
+                    <option value="estudiante">Estudiante</option>
+                </select>
+            </div>
 
             <button type="submit">Registrarse</button>
         </form>
