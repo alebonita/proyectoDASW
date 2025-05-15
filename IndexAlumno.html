@@ -57,6 +57,7 @@
       margin-bottom: 10px;
       border-radius: 8px;
       overflow: hidden;
+      position: relative;
     }
 
     .card img {
@@ -76,6 +77,22 @@
 
     .card-info p {
       margin: 2px 0;
+    }
+
+    .card-actions {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+    }
+
+    .card-actions button {
+      background-color: #622C71;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 8px;
+      cursor: pointer;
+      margin-left: 5px;
     }
 
     .calendar {
@@ -121,20 +138,13 @@
     <div class="section">
       <div class="title">Asesorías</div>
       <div class="buttons-container">
-        <button onclick="agregarAsesoria()">➕</button>
-        <button onclick="borrarAsesorias()">🗑️</button>
-        <button onclick="buscarAsesoria()">🔍</button>
+        <button onclick="window.location.href='Asesorías.html'">➕</button>
       </div>
       <div id="asesorias-container"></div>
     </div>
 
     <div class="section">
       <div class="title">Calendario</div>
-      <div class="buttons-container" style="justify-content: flex-end;">
-        <button onclick="agregarAsesoria()">➕</button>
-        <button onclick="borrarAsesorias()">🗑️</button>
-        <button onclick="buscarAsesoria()">🔍</button>
-      </div>
       <div class="calendar">
         <div class="calendar-header">CALENDARIO</div>
         <div id="calendar-grid" class="calendar-grid"></div>
@@ -145,6 +155,7 @@
   <script>
     const asesorias = [
       {
+        id: 1,
         nombre: "MATEMÁTICAS",
         horario: "3:00 a 4:00 pm",
         asesor: "@usuario",
@@ -153,6 +164,7 @@
         dia: 14
       },
       {
+        id: 2,
         nombre: "QUÍMICA",
         horario: "3:00 a 4:00 pm",
         asesor: "@usuario",
@@ -174,6 +186,9 @@
               <p><strong>Horario:</strong> ${a.horario}</p>
               <p><strong>Asesor:</strong> ${a.asesor}</p>
               <p><strong>Modalidad:</strong> ${a.modalidad}</p>
+              <div class="card-actions">
+                <button onclick="eliminarAsesoria(${a.id})">🗑️</button>
+              </div>
             </div>
           </div>
         `;
@@ -202,26 +217,17 @@
       }
     }
 
-    function agregarAsesoria() {
-      const nombre = prompt("Nombre de la asesoría:");
-      const horario = prompt("Horario:");
-      const modalidad = prompt("Modalidad:");
-      const asesor = prompt("Asesor:");
-      const dia = parseInt(prompt("¿Qué día del mes (1-31)?"), 10);
-      if (nombre && horario && modalidad && asesor && dia >= 1 && dia <= 31) {
-        asesorias.push({
-          nombre,
-          horario,
-          modalidad,
-          asesor,
-          imagen: "https://via.placeholder.com/150",
-          dia
-        });
+    function eliminarAsesoria(id) {
+      const index = asesorias.findIndex(a => a.id === id);
+      if (index !== -1) {
+        asesorias.splice(index, 1);
         renderizarAsesorias();
         renderizarCalendario();
-      } else {
-        alert("Datos incompletos o inválidos.");
       }
+    }
+
+    function agregarAsesoria() {
+      window.location.href = 'Asesorías.html';
     }
 
     function borrarAsesorias() {
