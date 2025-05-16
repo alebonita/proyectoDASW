@@ -120,12 +120,62 @@
       border: 1px solid #ddd;
       width: 200px;
     }
+    
+    /* Estilos para el calendario */
+    .calendar {
+      border-radius: 10px;
+      overflow: hidden;
+      width: 100%;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .calendar-header {
+      background-color: #CE93D8;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-weight: bold;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      padding: 10px;
+      text-align: center;
+      background-color: white;
+    }
+
+    .day-name {
+      font-weight: bold;
+      padding: 5px;
+    }
+
+    .day {
+      padding: 10px;
+      border-radius: 50%;
+    }
+
+    .marked {
+      background-color: #FFE699;
+      border-radius: 50%;
+    }
   </style>
 </head>
 <body>
   <div class="header"> Bienvenido @asesor</div>
 
   <div class="container">
+    <!-- Calendario -->
+    <div class="section">
+      <div class="title">Calendario</div>
+      <div class="calendar">
+        <div class="calendar-header">CALENDARIO</div>
+        <div id="calendar-grid" class="calendar-grid"></div>
+      </div>
+    </div>
+
     <!-- Asesorías -->
     <div class="section">
       <div class="title">Asesorías</div>
@@ -213,6 +263,7 @@
       try {
         await cargarUsuarioActual();
         await cargarAsesorias();
+        renderizarCalendario();
       } catch (error) {
         console.error("Error al inicializar:", error);
         alert("Error al inicializar la página. Verifica la conexión con el servidor.");
@@ -340,6 +391,53 @@
             </div>
           </div>`;
       });
+      
+      // Actualizar el calendario cada vez que se renderizan las asesorías
+      renderizarCalendario();
+    }
+    
+    // Función para renderizar el calendario
+    function renderizarCalendario() {
+      const mesActual = new Date();
+      const diasMes = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0).getDate();
+      const primerDiaSemana = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1).getDay();
+      
+      const grid = document.getElementById("calendar-grid");
+      grid.innerHTML = "";
+
+      const diasSemana = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+      for (let i = 0; i < diasSemana.length; i++) {
+        grid.innerHTML += `<div class="day-name">${diasSemana[i]}</div>`;
+      }
+
+      // Espacios en blanco para los días antes del primer día del mes
+      for (let i = 0; i < primerDiaSemana; i++) {
+        grid.innerHTML += `<div></div>`;
+      }
+
+      // Obtener los días con asesorías
+      const diasConAsesorias = {};
+      asesorias.forEach(a => {
+        if (a.dia) {
+          // Convertir nombre de día a número
+          const dias = {'Lunes': 1, 'Martes': 2, 'Miercoles': 3, 'Miércoles': 3, 'Jueves': 4, 'Viernes': 5, 'Sábado': 6, 'Sabado': 6, 'Domingo': 0};
+          const numeroDia = dias[a.dia];
+          
+          // Marcar todos los días de la semana que coincidan
+          for (let d = 1; d <= diasMes; d++) {
+            const diaSemana = (primerDiaSemana + d - 1) % 7;
+            if (diaSemana === numeroDia) {
+              diasConAsesorias[d] = true;
+            }
+          }
+        }
+      });
+
+      // Generar el calendario
+      for (let d = 1; d <= diasMes; d++) {
+        const marcada = diasConAsesorias[d] ? 'marked' : '';
+        grid.innerHTML += `<div class="day ${marcada}">${d}</div>`;
+      }
     }
 
     // Función para guardar una nueva asesoría
@@ -471,6 +569,21 @@
       );
       
       renderizarAsesorias(resultado);
+    }
+    
+    // Función para cerrar sesión
+    function cerrarSesion() {
+      fetch('http://localhost:8000/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      .then(() => {
+        window.location.href = 'login.html';
+      })
+      .catch(error => {
+        console.error('Error al cerrar sesión:', error);
+        window.location.href = 'login.html';
+      });
     }
   </script>
 </body>
