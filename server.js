@@ -9,11 +9,27 @@ const port = 8000;
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
+const fs = require('fs').promises;
+
+// Helper para borrar archivos físicos
+async function deleteFile(path) {
+  try {
+    await fs.unlink(path);
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      // Solo mostramos el error si NO es "archivo no existe"
+      console.error("Error al borrar el archivo:", error);
+    }
+    // si es ENOENT, lo ignoramos
+  }
+}
+
 // Configuración simplificada de CORS
 const cors = require('cors');
 app.use(cors({
   origin: 'http://127.0.0.1:5500',
-  credentials: true
+  credentials: true,
+   methods: ['GET', 'POST', 'DELETE'] 
 }));
 
 // Middlewares esenciales
@@ -66,25 +82,33 @@ app.post('/api/login', async (req, res) => {
 
 app.post('/api/asesorias', upload.single('imagen'), async (req, res) => {
   try {
-    const { materia, descripcion, modalidad, dia, inicio, fin } = req.body;
-    if (!materia || !dia || !inicio || !fin || !modalidad) {
+    const { ID_asesor, materia, modalidad, dia, inicio, fin } = req.body;
+
+    // Validación básica
+    if (!ID_asesor || !materia || !modalidad || !dia || !inicio || !fin) {
+      // Si se subió un archivo pero faltan campos, bórralo para evitar basura
+      if (req.file) await deleteFile(req.file.path);
       return res.status(400).json({ error: "Faltan campos requeridos" });
     }
+
     const nuevaAsesoria = new Asesoria({
-      ID_asesor: req.body.ID_asesor || 1,
+      ID_asesor,
       materia,
-      descripcion: descripcion || '',
       modalidad,
       dia,
       inicio,
       fin,
-      estado: 'confirmada',
-      imagen: req.file ? `/public/uploads/${req.file.filename}` : ''
+      imagen: req.file ? `/public/uploads/${req.file.filename}` : null, // Usa null si no hay imagen
     });
+
     await nuevaAsesoria.save();
-    res.status(201).json(nuevaAsesoria);
+    res.status(200).json({ mensaje: 'Asesoría creada correctamente', asesoría: nuevaAsesoria });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+      res.status(500).json({ 
+          success: false,
+          error: error.message 
+        });
   }
 });
 
@@ -99,19 +123,20 @@ app.get('/api/asesorias', async (req, res) => {
 
 app.delete('/api/asesorias/:id', async (req, res) => {
   try {
-    const result = await Asesoria.findByIdAndDelete(req.params.id);
-    if (!result) {
+    const asesoria = await Asesoria.findById(req.params.id);
+    if (!asesoria) {
       return res.status(404).json({ error: 'Asesoría no encontrada' });
     }
-    res.json({ 
-      success: true,
-      id: req.params.id // Asegúrate de devolver el ID eliminado
-    });
+
+    // Borra la imagen física si existe
+    if (asesoria.imagen) {
+      await deleteFile(asesoria.imagen.replace('/public', 'public'));
+    }
+
+    await Asesoria.findByIdAndDelete(req.params.id);
+    res.json({ success: true, id: req.params.id });
   } catch (error) {
-    res.status(500).json({ 
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    res.status(500).json({ error: error.message });
   }
 });
 

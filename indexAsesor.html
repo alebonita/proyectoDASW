@@ -362,12 +362,15 @@
         
         const result = await response.json();
         console.log("Asesoría creada:", result);
+
+        await cargarAsesorias();
         
         // Actualiza la lista sin recargar
         const asesoriasActuales = JSON.parse(localStorage.getItem('asesoriasBackup')) || [];
         asesoriasActuales.unshift(result); // Agrega la nueva asesoría al inicio
         localStorage.setItem('asesoriasBackup', JSON.stringify(asesoriasActuales));
         renderizarAsesorias(asesoriasActuales);
+        
         
         // Limpiar y cerrar modal
         document.getElementById('asesoriaForm').reset();
