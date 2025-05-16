@@ -82,47 +82,66 @@
         </div>
         <div class="input-group">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQQf2jvwDCd7HKlRqm4c7hHDUGuqhVtaBZSg&s" alt="icono-contraseña">
-            <input type="password" id="contra" placeholder="Contraseña">
+            <input type="password" id="contrasena" placeholder="Contraseña">
         </div>
         <button onclick="login()">Ingresar</button>
         <a href="Registro.html">Regístrate aquí</a>
     </div>
 
-    <script>
+   <script>
         async function login() {
             const correo = document.getElementById('username').value;
-            const contrasena = document.getElementById('contra').value;
+            const contrasena = document.getElementById('contrasena').value;
 
             if (!correo || !contrasena) {
                 alert('Completa ambos campos');
-                return 
+                return;
             }
-             try {
+
+            try {
                 const response = await fetch('http://localhost:8000/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ correo, contra: contrasena })
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ correo, contrasena })
                 });
 
-                const usuario = await response.json();
+                const data = await response.json();
 
-                if(response.ok){
-                    localStorage.setItem('usuario', JSON.stringify(usuario)); // Guarda datos en el navegador
-                    // Redirección por tipo de usuario
-                    switch(usuario.tipo_usuario) {
+                if (!response.ok) {
+                    alert(data.error || 'Usuario Incorrecto');
+                    return;
+                }
+
+                // Verifica la estructura de la respuesta
+                console.log('Respuesta del servidor:', data);
+
+                // Guarda datos en el navegador
+                localStorage.setItem('usuario', JSON.stringify(data));
+
+                // Asegúrate de que la propiedad se llama exactamente 'tipo_usuario'
+                const tipoUsuario = data.tipo_usuario || data.tipo || data.role;
+
+                if (!tipoUsuario) {
+                    alert('No se recibió el tipo de usuario en la respuesta');
+                    return;
+                }
+
+                // Redirección por tipo de usuario (convertido a minúsculas para evitar problemas)
+                switch(tipoUsuario.toLowerCase()) {
                     case 'admin':
                         window.location.href = 'admin.html';
                         break;
                     case 'asesor':
                         window.location.href = 'indexAsesor.html';
                         break;
-                    default: // alumno
+                    case 'alumno':
                         window.location.href = 'indexAlumno.html';
-                    }  
-                }else {
-                    alert(usuario.error || 'Usuario Incorrecto');
+                        break;
+                    default:
+                        alert('Tipo de usuario no reconocido: ' + tipoUsuario);
+                        // window.location.href = 'indexAlumno.html'; // Opcional: redirigir a una página por defecto
                 }
-            }catch (error){
+            } catch (error) {
                 console.error('Error:', error);
                 alert('Error al conectar con el servidor');
             }

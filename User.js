@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         match: [/^\S+@\S+\.\S+$/, 'Correo inválido']
     },
-    contra: {
+    contrasena: {
         type: String, 
         required: true,
         minlength: 6,
@@ -37,8 +37,8 @@ const userSchema = new mongoose.Schema({
     collection: 'users'
 });
 
-userSchema.methods.comparePassword = async function(contra) {
-    return await bcrypt.compare(contra, this.contra);
+userSchema.methods.comparePassword = async function(contrasena) {
+    return await bcrypt.compare(contrasena, this.contrasena);
 };
 
 userSchema.plugin(AutoIncrement, { 
@@ -47,8 +47,8 @@ userSchema.plugin(AutoIncrement, {
 });
 
 userSchema.pre('save', async function (next) {
-    if(!this.isModified('contra')) return next();
-    this.contra = await bcrypt.hash(this.contra, 10);
+    if(!this.isModified('contrasena')) return next();
+    this.contrasena = await bcrypt.hash(this.contrasena, 10);
     next();
 });
 
