@@ -1,27 +1,10 @@
 const mongoose = require('mongoose');
 const AutoIncrement = require('mongoose-sequence')(mongoose);
 
-const asesoriaSchema = new mongoose.Schema({
+const asesoriaAlumnoSchema = new mongoose.Schema({
     ID_asesoria: {
         type: Number,
         unique: true
-    },
-    ID_asesor: {
-        type: Number,
-        ref: 'User',
-        required: true,
-        // Comentamos la validación para pruebas
-        /*validate:{
-            validator: async function (ID){
-                try {
-                    const user = await mongoose.model('User').findOne({ ID_usuario: ID });
-                    return !!user; // Simplificamos la validación
-                } catch (e) {
-                    return false;
-                }
-            },
-            message: 'El ID no corresponde a un asesor'
-        }*/
     },
     materia:{
         type: String, 
@@ -62,12 +45,15 @@ const asesoriaSchema = new mongoose.Schema({
     }
 },
 { 
-    collection: 'asesorias'
+    collection: 'asesoriasAlumno'
 });
 
-asesoriaSchema.plugin(AutoIncrement, { 
+// Usamos un nombre diferente para el contador: 'asesoria_alumno_counter'
+asesoriaAlumnoSchema.plugin(AutoIncrement, { 
     inc_field: 'ID_asesoria', 
-    startAt: 1 
+    startAt: 1,
+    id: 'asesoria_alumno_counter' // Nombre único para este contador
 });
 
-module.exports = mongoose.model('Asesoria', asesoriaSchema);
+// Nombramos el modelo como 'AsesoriaAlumno' para diferenciarlo de 'Asesoria'
+module.exports = mongoose.model('AsesoriaAlumno', asesoriaAlumnoSchema);

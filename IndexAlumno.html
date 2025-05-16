@@ -43,6 +43,12 @@
       z-index: 1000;
       padding: 20px;
       box-sizing: border-box;
+      transform: translateX(100%); /* Comienza fuera de la pantalla */
+      transition: transform 0.3s ease-in-out;
+    }
+    
+    .modal.show {
+      transform: translateX(0); /* Se desliza hacia la vista */
     }
 
     .modal-content {
@@ -94,12 +100,42 @@
       display: flex;
       gap: 10px;
       margin-bottom: 10px;
+      align-items: center;
     }
 
     .buttons-container button {
       background-color: transparent;
       border: none;
       font-size: 22px;
+      cursor: pointer;
+    }
+    
+    /* Estilos para el buscador */
+    .search-container {
+      display: none;
+      margin-bottom: 15px;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .search-container input {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      width: 200px;
+      margin-right: 8px;
+    }
+    
+    .search-container button {
+      padding: 8px 12px;
+      background-color: #622C71;
+      color: white;
+      border: none;
+      border-radius: 4px;
       cursor: pointer;
     }
 
@@ -111,6 +147,7 @@
       border-radius: 8px;
       overflow: hidden;
       position: relative;
+      min-height: 150px; /* Altura mínima para la tarjeta */
     }
 
     .card img {
@@ -183,11 +220,31 @@
       background-color: #FFE699;
       border-radius: 50%;
     }
+    
+    .no-asesorias {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-style: italic;
+    }
+    
+    .alert {
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      display: none;
+    }
+    
+    .alert.error {
+      background-color: #f44336;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <span>👤 Bienvenido @usuario</span>
+    <span id="userWelcome">👤 Bienvenido @usuario</span>
     <button class="menu-btn" onclick="toggleModal()">☰</button>
   </div>
 
@@ -196,20 +253,29 @@
     <span class="close-btn" onclick="toggleModal()">&times;</span>
     <div class="modal-content">
       <h3>Información de la cuenta</h3>
-      <p><strong>Nombre:</strong> Juan Pérez</p>
-      <p><strong>Correo:</strong> juan@example.com</p>
-      <p><strong>Tipo de cuenta:</strong> Asesor</p>
+      <p><strong>Nombre:</strong> <span id="userName">Alumno</span></p>
+      <p><strong>Correo:</strong> <span id="userEmail">alumno@example.com</span></p>
+      <p><strong>Tipo de cuenta:</strong> <span id="userType">Alumno</span></p>
       <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
     </div>
   </div>
 
+  <div id="alertMessage" class="alert"></div>
+
   <div class="container">
     <div class="section">
-      <div class="title">Asesorías</div>
+      <div class="title">Mis Asesorías</div>
       <div class="buttons-container">
         <button onclick="window.location.href='Asesorías.html'">➕</button>
+        <button onclick="mostrarBuscador()">🔍</button>
       </div>
-      <div id="asesorias-container"></div>
+      <div class="search-container" id="searchContainer">
+        <input type="text" id="searchInput" placeholder="Buscar por materia o día...">
+        <button onclick="buscarAsesorias()">Buscar</button>
+      </div>
+      <div id="asesorias-container">
+        <p class="no-asesorias">Cargando asesorías...</p>
+      </div>
     </div>
 
     <div class="section">
@@ -222,69 +288,156 @@
   </div>
 
   <script>
-    // Datos del usuario (simulados)
-    const usuario = {
-      nombre: "Juan Pérez",
-      correo: "juan@example.com",
-      tipo: "asesor"
-    };
-
-    // Datos de asesorías
-    const asesorias = [
-      {
-        id: 1,
-        nombre: "MATEMÁTICAS",
-        horario: "3:00 a 4:00 pm",
-        asesor: "@usuario",
-        modalidad: "Presencial",
-        imagen: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQN9jZ7n8rUMxSK27j7UXQu79JhXabGS3CnmQ&s",
-        dia: 14
-      },
-      {
-        id: 2,
-        nombre: "QUÍMICA",
-        horario: "3:00 a 4:00 pm",
-        asesor: "@usuario",
-        modalidad: "Presencial",
-        imagen: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_nfc2IxR-RG4nI8XBWskpL7qMfcxyhZjHMg&s",
-        dia: 18
+    // Variables globales
+    let asesorias = [];
+    let asesoriasOriginal = []; // Para guardar la lista completa antes de filtrar
+    let usuarioActual = null;
+    const API_URL = 'http://localhost:8000';
+    
+    // Cargar datos al iniciar la página
+    document.addEventListener('DOMContentLoaded', async() => {
+      try {
+        await cargarUsuarioActual();
+        await cargarInscripciones();
+        renderizarCalendario();
+        
+        // Verificar si hay alguna inscripción reciente
+        const nuevaInscripcion = sessionStorage.getItem('nuevaInscripcion');
+        if (nuevaInscripcion) {
+          mostrarAlerta('¡Te has inscrito exitosamente a una asesoría!');
+          sessionStorage.removeItem('nuevaInscripcion');
+        }
+        
+        // Añadir evento de teclado para buscar con Enter
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              buscarAsesorias();
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error al inicializar:", error);
+        mostrarAlerta("Error al inicializar la página. Verifica la conexión con el servidor.", true);
       }
-    ];
-
-    function toggleModal() {
-      const modal = document.getElementById("accountModal");
-      modal.style.display = modal.style.display === "block" ? "none" : "block";
+    });
+    
+    async function cargarUsuarioActual() {
+      try {
+        const response = await fetch(`${API_URL}/api/usuario-actual`, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          console.log('Usuario no autenticado, usando perfil predeterminado');
+          usuarioActual = { 
+            id: '1', 
+            nombre: 'Alumno', 
+            correo: 'alumno@example.com',
+            tipo_usuario: 'alumno' 
+          };
+          actualizarInfoUsuario();
+          return;
+        }
+        
+        usuarioActual = await response.json();
+        console.log("Usuario cargado:", usuarioActual);
+        actualizarInfoUsuario();
+      } catch (error) {
+        console.error("Error al cargar usuario:", error);
+        usuarioActual = { 
+          id: '1', 
+          nombre: 'Alumno', 
+          correo: 'alumno@example.com',
+          tipo_usuario: 'alumno' 
+        };
+        actualizarInfoUsuario();
+      }
     }
-
-    function logout() {
-      // Aquí iría la lógica para cerrar sesión
-      alert("Sesión cerrada. Redirigiendo al login...");
-      window.location.href = "Login.html";
+    
+    function actualizarInfoUsuario() {
+      // Actualizar la información en el header
+      document.getElementById('userWelcome').textContent = `👤 Bienvenido ${usuarioActual.nombre}`;
+      
+      // Actualizar la información en el modal
+      document.getElementById('userName').textContent = usuarioActual.nombre;
+      document.getElementById('userEmail').textContent = usuarioActual.correo;
+      document.getElementById('userType').textContent = 
+        usuarioActual.tipo_usuario.charAt(0).toUpperCase() + usuarioActual.tipo_usuario.slice(1);
     }
-
+    
+    async function cargarInscripciones() {
+      try {
+        // Mostrar mensaje de carga
+        document.getElementById('asesorias-container').innerHTML = 
+          '<p class="no-asesorias">Cargando asesorías...</p>';
+        
+        // Cargar directamente desde localStorage para simplificar el proceso
+        const inscripcionesLocal = JSON.parse(localStorage.getItem('inscripcionesAlumno') || '[]');
+        console.log("Inscripciones cargadas desde localStorage:", inscripcionesLocal);
+        
+        if (inscripcionesLocal.length > 0) {
+          asesorias = inscripcionesLocal;
+          asesoriasOriginal = [...inscripcionesLocal]; // Guardar una copia
+          renderizarAsesorias();
+          renderizarCalendario();
+        } else {
+          // No hay inscripciones
+          document.getElementById('asesorias-container').innerHTML = `
+            <p class="no-asesorias">
+              No estás inscrito en ninguna asesoría. 
+              Haz clic en el botón "+" para ver las asesorías disponibles.
+            </p>`;
+        }
+      } catch (error) {
+        console.error("Error al cargar inscripciones:", error);
+        document.getElementById('asesorias-container').innerHTML = 
+          '<p class="no-asesorias">Error al cargar tus asesorías</p>';
+      }
+    }
+    
     function renderizarAsesorias() {
       const contenedor = document.getElementById("asesorias-container");
+      
+      if (!asesorias || asesorias.length === 0) {
+        contenedor.innerHTML = `
+          <p class="no-asesorias">
+            No estás inscrito en ninguna asesoría. 
+            Haz clic en el botón "+" para ver las asesorías disponibles.
+          </p>`;
+        return;
+      }
+      
       contenedor.innerHTML = "";
-      asesorias.forEach(a => {
+      
+      asesorias.forEach(inscripcion => {
+        // La asesoría puede estar en .asesoria o directamente en el objeto
+        const a = inscripcion.asesoria || inscripcion;
+        const imagenUrl = a.imagen || 'https://via.placeholder.com/150?text=Sin+Imagen';
+        const horario = `${a.dia} ${a.inicio} - ${a.fin}`;
+        
         contenedor.innerHTML += `
           <div class="card">
-            <img src="${a.imagen}" alt="imagen">
+            <img src="${imagenUrl}" alt="${a.materia}" onerror="this.src='https://via.placeholder.com/150?text=Error'">
             <div class="card-info">
-              <h3>${a.nombre}</h3>
-              <p><strong>Horario:</strong> ${a.horario}</p>
-              <p><strong>Asesor:</strong> ${a.asesor}</p>
+              <h3>${a.materia}</h3>
+              <p><strong>Horario:</strong> ${horario}</p>
               <p><strong>Modalidad:</strong> ${a.modalidad}</p>
               <div class="card-actions">
-                <button onclick="eliminarAsesoria(${a.id})">🗑️</button>
+                <button onclick="cancelarInscripcion('${inscripcion.id}')">🗑️</button>
               </div>
             </div>
           </div>
         `;
       });
     }
-
+    
     function renderizarCalendario() {
-      const diasMes = 31;
+      const mesActual = new Date();
+      const diasMes = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0).getDate();
+      const primerDiaSemana = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1).getDay();
+      
       const grid = document.getElementById("calendar-grid");
       grid.innerHTML = "";
 
@@ -293,29 +446,179 @@
         grid.innerHTML += `<div class="day-name">${diasSemana[i]}</div>`;
       }
 
-      // Asumiendo que el 1 de mayo empieza en jueves (J = índice 4)
-      const primerDiaSemana = 4;
+      // Espacios en blanco para los días antes del primer día del mes
       for (let i = 0; i < primerDiaSemana; i++) {
         grid.innerHTML += `<div></div>`;
       }
 
+      // Obtener los días con asesorías
+      const diasConAsesorias = {};
+      asesorias.forEach(inscripcion => {
+        const a = inscripcion.asesoria || inscripcion;
+        if (a.dia) {
+          // Convertir nombre de día a número
+          const dias = {'Lunes': 1, 'Martes': 2, 'Miércoles': 3, 'Miercoles': 3, 'Jueves': 4, 'Viernes': 5, 'Sábado': 6, 'Sabado': 6, 'Domingo': 0};
+          const numeroDia = dias[a.dia];
+          
+          // Marcar todos los días de la semana que coincidan
+          for (let d = 1; d <= diasMes; d++) {
+            const diaSemana = (primerDiaSemana + d - 1) % 7;
+            if (diaSemana === numeroDia) {
+              diasConAsesorias[d] = true;
+            }
+          }
+        }
+      });
+
+      // Generar el calendario
       for (let d = 1; d <= diasMes; d++) {
-        const marcada = asesorias.some(a => a.dia === d);
-        grid.innerHTML += `<div class="day ${marcada ? 'marked' : ''}">${d}</div>`;
+        const marcada = diasConAsesorias[d] ? 'marked' : '';
+        grid.innerHTML += `<div class="day ${marcada}">${d}</div>`;
       }
     }
-
-    function eliminarAsesoria(id) {
-      const index = asesorias.findIndex(a => a.id === id);
-      if (index !== -1) {
-        asesorias.splice(index, 1);
+    
+    async function cancelarInscripcion(id) {
+      if (!confirm("¿Estás seguro de que quieres cancelar esta inscripción?")) return;
+      
+      try {
+        // Actualizar localStorage directamente
+        const inscripcionesLocal = JSON.parse(localStorage.getItem('inscripcionesAlumno') || '[]');
+        const nuevasInscripciones = inscripcionesLocal.filter(i => i.id != id);
+        localStorage.setItem('inscripcionesAlumno', JSON.stringify(nuevasInscripciones));
+        
+        console.log(`Inscripción ${id} cancelada. Quedan ${nuevasInscripciones.length} inscripciones.`);
+        
+        // Actualizar la interfaz
+        asesorias = nuevasInscripciones;
+        asesoriasOriginal = [...nuevasInscripciones]; // Actualizar también la copia original
         renderizarAsesorias();
         renderizarCalendario();
+        
+        mostrarAlerta("Inscripción cancelada correctamente");
+      } catch (error) {
+        console.error('Error al cancelar inscripción:', error);
+        mostrarAlerta("Error al cancelar la inscripción", true);
       }
     }
-
-    renderizarAsesorias();
-    renderizarCalendario();
+    
+    function toggleModal() {
+      const modal = document.getElementById("accountModal");
+      
+      if (modal.classList.contains('show')) {
+        // Cerrar el modal
+        modal.classList.remove("show");
+        setTimeout(() => {
+          modal.style.display = "none";
+        }, 300); // Tiempo igual a la duración de la transición
+      } else {
+        // Abrir el modal
+        modal.style.display = "block";
+        // Pequeño retardo para que la transición funcione
+        setTimeout(() => {
+          modal.classList.add("show");
+        }, 10);
+      }
+    }
+    
+    function logout() {
+      // Borrar datos locales
+      localStorage.removeItem('inscripcionesAlumno');
+      
+      // Intentar hacer logout en el servidor
+      fetch(`${API_URL}/api/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      }).catch(error => {
+        console.error("Error al cerrar sesión en el servidor:", error);
+      }).finally(() => {
+        // Redirigir a la página de login
+        alert("Sesión cerrada. Redirigiendo al login...");
+        window.location.href = "login.html";
+      });
+    }
+    
+    function mostrarAlerta(mensaje, esError = false) {
+      const alerta = document.getElementById('alertMessage');
+      alerta.textContent = mensaje;
+      alerta.style.display = 'block';
+      
+      if (esError) {
+        alerta.classList.add('error');
+      } else {
+        alerta.classList.remove('error');
+      }
+      
+      // Ocultar después de 5 segundos
+      setTimeout(() => {
+        alerta.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Función para mostrar/ocultar el buscador
+    function mostrarBuscador() {
+      const searchContainer = document.getElementById('searchContainer');
+      const estaMostrado = searchContainer.style.display === 'block';
+      
+      if (estaMostrado) {
+        // Si está visible, lo ocultamos y restauramos la lista original
+        searchContainer.style.display = 'none';
+        document.getElementById('searchInput').value = '';
+        asesorias = [...asesoriasOriginal]; // Restaurar desde la copia original
+        renderizarAsesorias();
+        renderizarCalendario();
+      } else {
+        // Si está oculto, lo mostramos
+        searchContainer.style.display = 'block';
+        document.getElementById('searchInput').focus();
+      }
+    }
+    
+    // Función para buscar asesorías
+    function buscarAsesorias() {
+      const termino = document.getElementById('searchInput').value.toLowerCase().trim();
+      
+      if (!termino) {
+        // Si el campo está vacío, mostrar todas las asesorías
+        asesorias = [...asesoriasOriginal];
+        renderizarAsesorias();
+        renderizarCalendario();
+        return;
+      }
+      
+      // Filtrar las asesorías que coinciden con el término de búsqueda
+      asesorias = asesoriasOriginal.filter(inscripcion => {
+        const a = inscripcion.asesoria || inscripcion;
+        
+        return (
+          (a.materia && a.materia.toLowerCase().includes(termino)) ||
+          (a.dia && a.dia.toLowerCase().includes(termino)) ||
+          (a.modalidad && a.modalidad.toLowerCase().includes(termino)) ||
+          (a.descripcion && a.descripcion.toLowerCase().includes(termino))
+        );
+      });
+      
+      // Mostrar resultados
+      renderizarAsesorias();
+      renderizarCalendario();
+      
+      // Mostrar mensaje si no hay resultados
+      if (asesorias.length === 0) {
+        document.getElementById('asesorias-container').innerHTML = `
+          <p class="no-asesorias">
+            No se encontraron asesorías que coincidan con "${termino}".
+            <br><br>
+            <button onclick="resetearBusqueda()" class="btn btn-sm btn-primary">Ver todas</button>
+          </p>`;
+      }
+    }
+    
+    // Función para resetear la búsqueda
+    function resetearBusqueda() {
+      document.getElementById('searchInput').value = '';
+      asesorias = [...asesoriasOriginal];
+      renderizarAsesorias();
+      renderizarCalendario();
+    }
   </script>
 </body>
 </html>

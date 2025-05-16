@@ -56,22 +56,31 @@
 
     .card {
       display: flex;
+      flex-direction: row; /* Explícitamente horizontal */
       background-color: #CE93D8;
       color: white;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
       border-radius: 8px;
       overflow: hidden;
       position: relative;
+      min-height: 150px; /* Altura mínima para la tarjeta */
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Sombra suave */
     }
 
     .card img {
       width: 40%;
+      height: 100%;
       object-fit: cover;
+      flex-shrink: 0; /* Evita que la imagen se encoja */
     }
 
     .card-info {
-      padding: 10px;
+      padding: 15px;
       width: 60%;
+      text-align: left; /* Alineación izquierda explícita */
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Centra verticalmente el contenido */
     }
 
     .card-info h3 {
@@ -201,18 +210,25 @@
 
     // Cargar asesorías al iniciar la página
     document.addEventListener('DOMContentLoaded', async() => {
-      await cargarUsuarioActual();
-      await cargarAsesorias();
+      try {
+        await cargarUsuarioActual();
+        await cargarAsesorias();
+      } catch (error) {
+        console.error("Error al inicializar:", error);
+        alert("Error al inicializar la página. Verifica la conexión con el servidor.");
+      }
     });
 
     async function cargarUsuarioActual() {
         try {
-            const response = await fetch('/api/usuario-actual', {
+            const response = await fetch('http://localhost:8000/api/usuario-actual', {
                 credentials: 'include'
             });
             
             if (!response.ok) {
-                throw new Error('Error al obtener usuario');
+                console.log('Usuario no autenticado, usando perfil predeterminado');
+                document.querySelector('.header').textContent = '👤 Bienvenido Asesor';
+                return;
             }
             
             usuarioActual = await response.json();
@@ -237,18 +253,17 @@
         }
     }
 
-
     // Función para cargar asesorías desde el servidor
     async function cargarAsesorias() {
       const contenedor = document.getElementById("asesorias-container");
       contenedor.innerHTML = '<p class="text-center">Cargando asesorías...</p>';
 
       try {
+        console.log("Intentando cargar asesorías desde el servidor...");
         const response = await fetch('http://localhost:8000/api/asesorias', {
           headers: {
             'Content-Type': 'application/json',
-          },
-          credentials: 'include'
+          }
         });
         
         if (!response.ok) {
@@ -257,61 +272,70 @@
         }
         
         const data = await response.json();
+        console.log("Asesorías obtenidas:", data);
         
         if (!data || data.length === 0) {
           contenedor.innerHTML = '<p class="text-center">No hay asesorías registradas aún</p>';
           return;
         }
         
-        // Guarda en localStorage como respaldo
+        // Guardar en variable global y localStorage
+        asesorias = data;
         localStorage.setItem('asesoriasBackup', JSON.stringify(data));
+        
+        // Renderizar en pantalla
         renderizarAsesorias(data);
         
       } catch (error) {
-        console.error("Error detallado:", error);
+        console.error("Error detallado al cargar asesorías:", error);
         
         // Intenta con datos de localStorage
         const backup = localStorage.getItem('asesoriasBackup');
         if (backup) {
           try {
-            renderizarAsesorias(JSON.parse(backup));
+            console.log("Usando datos de respaldo del localStorage");
+            const asesoriasBackup = JSON.parse(backup);
+            asesorias = asesoriasBackup;
+            renderizarAsesorias(asesoriasBackup);
             return;
           } catch (e) {
             console.error("Error al parsear backup:", e);
           }
         }
         
-        // Muestra datos de ejemplo con imagen local
+        // Muestra mensaje de error
         contenedor.innerHTML = `
-          <div class="card">
-            <img src="images/placeholder.jpg" alt="Ejemplo">
-            <div class="card-info">
-              <h3>EJEMPLO DE ASESORÍA</h3>
-              <p><strong>Error:</strong> ${error.message}</p>
-              <p>No se pudo conectar al servidor. Mostrando datos locales.</p>
-            </div>
+          <div class="alert alert-danger">
+            <p><strong>Error al cargar asesorías:</strong> ${error.message}</p>
+            <p>No se pudo conectar al servidor. Verifica que el servidor esté funcionando en http://localhost:8000</p>
           </div>
         `;
       }
     }
-
-// Función de respaldo para mostrar datos de ejemplo
 
     // Función para renderizar las asesorías en el DOM
     function renderizarAsesorias(asesorias) {
       const contenedor = document.getElementById("asesorias-container");
       contenedor.innerHTML = "";
       
+      if (!asesorias || asesorias.length === 0) {
+        contenedor.innerHTML = '<p class="text-center">No hay asesorías registradas aún</p>';
+        return;
+      }
+      
       asesorias.forEach((a) => {
+        console.log("Renderizando asesoría:", a);
+        const imagenUrl = a.imagen || 'https://via.placeholder.com/150?text=Sin+Imagen';
+        
         contenedor.innerHTML += `
           <div class="card">
-            <img src="${a.imagen || 'https://via.placeholder.com/150'}" alt="${a.materia}">
+            <img src="${imagenUrl}" alt="${a.materia}" onerror="this.src='https://via.placeholder.com/150?text=Error'">
             <div class="card-info">
               <button class="delete-btn" onclick="eliminarAsesoria('${a._id}')">✕</button>
               <h3>${a.materia}</h3>
               <p><strong>Horario:</strong> ${a.dia} ${a.inicio} - ${a.fin}</p>
               <p><strong>Modalidad:</strong> ${a.modalidad}</p>
-              <p><strong>Estado:</strong> ${a.estado}</p>
+              <p><strong>Estado:</strong> ${a.estado || 'pendiente'}</p>
               ${a.descripcion ? `<p><strong>Descripción:</strong> ${a.descripcion}</p>` : ''}
             </div>
           </div>`;
@@ -320,39 +344,40 @@
 
     // Función para guardar una nueva asesoría
     async function guardarAsesoria() {
-      const formData = new FormData();
-      const imagenInput = document.getElementById('imagenInput');
-      
-      // Asegúrate de que todos los campos requeridos estén presentes
-      const materia = document.getElementById('materiaInput').value;
-      const dia = document.getElementById('diaInput').value;
-      const inicio = document.getElementById('inicioInput').value;
-      const fin = document.getElementById('finInput').value;
-      const modalidad = document.getElementById('modalidadInput').value;
-      
-      if (!materia || !dia || !inicio || !fin || !modalidad) {
-        alert("Por favor complete todos los campos requeridos");
-        return;
-      }
-
-      // Usa el mismo nombre de campos que espera el backend
-      formData.append('ID_asesor', '1'); // Temporal - deberías obtenerlo de la sesión
-      formData.append('materia', materia);
-      formData.append('descripcion', document.getElementById('descripcionInput').value);
-      formData.append('modalidad', modalidad);
-      formData.append('dia', dia);
-      formData.append('inicio', inicio);
-      formData.append('fin', fin);
-      
-      if (imagenInput.files[0]) {
-        formData.append('imagen', imagenInput.files[0]);
-      }
-
+      const modal = bootstrap.Modal.getInstance(document.getElementById('asesoriaModal'));
       try {
+        const formData = new FormData();
+        const imagenInput = document.getElementById('imagenInput');
+        
+        // Asegúrate de que todos los campos requeridos estén presentes
+        const materia = document.getElementById('materiaInput').value;
+        const dia = document.getElementById('diaInput').value;
+        const inicio = document.getElementById('inicioInput').value;
+        const fin = document.getElementById('finInput').value;
+        const modalidad = document.getElementById('modalidadInput').value;
+        
+        if (!materia || !dia || !inicio || !fin || !modalidad) {
+          alert("Por favor complete todos los campos requeridos");
+          return;
+        }
+
+        // Usar el mismo nombre de campos que espera el backend
+        formData.append('ID_asesor', '1'); // Valor temporal
+        formData.append('materia', materia);
+        formData.append('descripcion', document.getElementById('descripcionInput').value);
+        formData.append('modalidad', modalidad);
+        formData.append('dia', dia);
+        formData.append('inicio', inicio);
+        formData.append('fin', fin);
+        
+        if (imagenInput.files[0]) {
+          formData.append('imagen', imagenInput.files[0]);
+        }
+
+        console.log("Enviando datos al servidor...");
         const response = await fetch('http://localhost:8000/api/asesorias', {
           method: 'POST',
           body: formData,
-          credentials: 'include'
         });
 
         if (!response.ok) {
@@ -360,24 +385,31 @@
           throw new Error(errorData.error || errorData.message || 'Error al guardar');
         }
         
-        const result = await response.json();
-        console.log("Asesoría creada:", result);
-
-        await cargarAsesorias();
+        const nuevaAsesoria = await response.json();
+        console.log("Asesoría creada:", nuevaAsesoria);
         
-        // Actualiza la lista sin recargar
-        const asesoriasActuales = JSON.parse(localStorage.getItem('asesoriasBackup')) || [];
-        asesoriasActuales.unshift(result); // Agrega la nueva asesoría al inicio
-        localStorage.setItem('asesoriasBackup', JSON.stringify(asesoriasActuales));
-        renderizarAsesorias(asesoriasActuales);
+        // Actualizar la lista en memoria
+        asesorias.unshift(nuevaAsesoria);
+        localStorage.setItem('asesoriasBackup', JSON.stringify(asesorias));
         
+        // Volver a renderizar la lista
+        renderizarAsesorias(asesorias);
         
         // Limpiar y cerrar modal
         document.getElementById('asesoriaForm').reset();
-        bootstrap.Modal.getInstance(document.getElementById('asesoriaModal')).hide();
+        modal.hide();
+        
+        // Mostrar mensaje de éxito
+        const contenedor = document.getElementById("asesorias-container");
+        contenedor.insertAdjacentHTML('afterbegin', `
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            Asesoría creada correctamente
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        `);
         
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error al guardar asesoría:', error);
         alert(`Error al guardar: ${error.message}`);
       }
     }
@@ -387,9 +419,9 @@
       if (!confirm("¿Estás seguro de que quieres eliminar esta asesoría?")) return;
       
       try {
+        console.log("Eliminando asesoría con ID:", id);
         const response = await fetch(`http://localhost:8000/api/asesorias/${id}`, {
-          method: 'DELETE',
-          credentials: 'include'
+          method: 'DELETE'
         });
 
         if (!response.ok) {
@@ -397,42 +429,26 @@
           throw new Error(errorData.error || 'Error al eliminar');
         }
 
-        // Actualiza la lista local sin recargar
+        // Actualizar la lista en memoria
+        asesorias = asesorias.filter(a => a._id !== id);
+        localStorage.setItem('asesoriasBackup', JSON.stringify(asesorias));
+        
+        // Volver a renderizar la lista
+        renderizarAsesorias(asesorias);
+        
+        // Mostrar mensaje de éxito
         const contenedor = document.getElementById("asesorias-container");
-        const cards = contenedor.querySelectorAll('.card');
-        
-        cards.forEach(card => {
-          if (card.querySelector('.delete-btn').onclick.toString().includes(id)) {
-            card.remove(); // Elimina visualmente la tarjeta
-          }
-        });
-        
-        // Actualiza los datos en localStorage
-        const asesoriasActuales = JSON.parse(localStorage.getItem('asesoriasBackup') || []);
-        const nuevasAsesorias = asesoriasActuales.filter(a => a._id !== id);
-        localStorage.setItem('asesoriasBackup', JSON.stringify(nuevasAsesorias));
+        contenedor.insertAdjacentHTML('afterbegin', `
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            Asesoría eliminada correctamente
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        `);
         
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error al eliminar:', error);
         alert(`Error al eliminar: ${error.message}`);
       }
-    }
-
-    function mostrarDatosDeEjemplo() {
-      console.log("Mostrando datos de ejemplo");
-      const contenedor = document.getElementById("asesorias-container");
-      contenedor.innerHTML = `
-      <div class="card">
-        <div class="placeholder-img" style="width:40%;height:100%;display:flex;align-items:center;justify-content:center;background:#f0f0f0;">
-          Sin imagen
-        </div>
-        <div class="card-info">
-          <h3>EJEMPLO DE ASESORÍA</h3>
-          <p><strong>Error:</strong> ${error.message}</p>
-          <p>No se pudo conectar al servidor</p>
-        </div>
-      </div>
-`;
     }
 
     // Función para mostrar/ocultar el buscador

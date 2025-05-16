@@ -16,10 +16,19 @@
       color: white;
       padding: 15px;
       border-radius: 5px;
-      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       font-size: 18px;
       font-weight: bold;
       margin-bottom: 20px;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
     }
     table {
       width: 100%;
@@ -44,6 +53,13 @@
       cursor: pointer;
       color: #622C71;
       font-weight: bold;
+      background-color: #FFE699;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
     .dropdown-content {
       display: none;
@@ -67,14 +83,42 @@
     .dropdown-content button:hover:enabled {
       background-color: #4A1E56;
     }
+    .dropdown-content button:disabled {
+      background-color: #4CAF50;
+      cursor: not-allowed;
+    }
     .dropdown-row td {
       padding: 0;
       border: none;
     }
+    .alert {
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      display: none;
+    }
+    .alert.error {
+      background-color: #f44336;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      font-style: italic;
+      color: #666;
+    }
   </style>
 </head>
 <body>
-  <div class="header">Asesorías</div>
+  <div class="header">
+    <button class="back-btn" onclick="volverAInicio()">← Volver</button>
+    Asesorías Disponibles
+    <div></div> <!-- Espacio vacío para centrar el título -->
+  </div>
+  
+  <div id="alertMessage" class="alert"></div>
+
   <table>
     <thead>
       <tr>
@@ -86,77 +130,249 @@
         <th>Información</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="asesoriasTable">
       <tr>
-        <td>123</td>
-        <td>Matemáticas I</td>
-        <td>@usuario_asesor</td>
-        <td>2:00 - 3:00 pm</td>
-        <td>Presencial</td>
-        <td><span class="info-icon" onclick="toggleDropdown(this)">i</span></td>
-      </tr>
-      <tr class="dropdown-row">
-        <td colspan="6">
-          <div class="dropdown-content">
-            <p><strong>Descripción:</strong> Introducción a álgebra, geometría y cálculo.</p>
-            <p><strong>Reseñas:</strong></p>
-            <p>@usuario: "Muy buena asesoría" ⭐⭐⭐⭐⭐</p>
-            <p>@usuario: "Excelente explicación" ⭐⭐⭐⭐</p>
-            <button onclick="toggleInscribir(this)">Inscribir</button>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>458</td>
-        <td>Química</td>
-        <td>@usuario_asesor</td>
-        <td>4:00 - 6:00 pm</td>
-        <td>En línea</td>
-        <td><span class="info-icon" onclick="toggleDropdown(this)">i</span></td>
-      </tr>
-      <tr class="dropdown-row">
-        <td colspan="6">
-          <div class="dropdown-content">
-            <p><strong>Descripción:</strong> Estudio de la estructura atómica y reacciones químicas.</p>
-            <p><strong>Reseñas:</strong></p>
-            <p>@usuario: "Muy interesante" ⭐⭐⭐⭐⭐</p>
-            <p>@usuario: "Aprendí mucho" ⭐⭐⭐⭐</p>
-            <button onclick="toggleInscribir(this)">Inscribir</button>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>198</td>
-        <td>Programación</td>
-        <td>@usuario_asesor</td>
-        <td>9:00 - 11:00 am</td>
-        <td>Presencial</td>
-        <td><span class="info-icon" onclick="toggleDropdown(this)">i</span></td>
-      </tr>
-      <tr class="dropdown-row">
-        <td colspan="6">
-          <div class="dropdown-content">
-            <p><strong>Descripción:</strong> Fundamentos de lenguajes y algoritmos.</p>
-            <p><strong>Reseñas:</strong></p>
-            <p>@usuario: "Clases muy claras" ⭐⭐⭐⭐⭐</p>
-            <p>@usuario: "Lo recomiendo" ⭐⭐⭐⭐</p>
-            <button onclick="toggleInscribir(this)">Inscribir</button>
-          </div>
-        </td>
+        <td colspan="6" class="loading">Cargando asesorías disponibles...</td>
       </tr>
     </tbody>
   </table>
 
   <script>
+    let asesorias = [];
+    let usuarioActual = null;
+    const API_URL = 'http://localhost:8000';
+
+    // Cargar datos al iniciar la página
+    document.addEventListener('DOMContentLoaded', async() => {
+      try {
+        await cargarUsuarioActual();
+        await cargarAsesorias();
+      } catch (error) {
+        console.error("Error al inicializar:", error);
+        mostrarAlerta("Error al inicializar la página. Verifica la conexión con el servidor.", true);
+      }
+    });
+    
+    async function cargarUsuarioActual() {
+      try {
+        const response = await fetch(`${API_URL}/api/usuario-actual`, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          console.log('Usuario no autenticado, usando perfil predeterminado');
+          usuarioActual = { 
+            id: '1', 
+            nombre: 'Alumno', 
+            tipo_usuario: 'alumno' 
+          };
+          return;
+        }
+        
+        usuarioActual = await response.json();
+        console.log("Usuario cargado:", usuarioActual);
+      } catch (error) {
+        console.error("Error al cargar usuario:", error);
+        usuarioActual = { 
+          id: '1', 
+          nombre: 'Alumno', 
+          tipo_usuario: 'alumno' 
+        };
+      }
+    }
+
+    async function cargarAsesorias() {
+      try {
+        console.log("Solicitando asesorías al servidor...");
+        
+        // Mostramos mensaje de carga
+        document.getElementById('asesoriasTable').innerHTML = `
+          <tr>
+            <td colspan="6" class="loading">Cargando asesorías disponibles...</td>
+          </tr>
+        `;
+        
+        // Hacemos la solicitud sin filtro de tipo para obtener de cualquier colección
+        const response = await fetch(`${API_URL}/api/asesorias`, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Asesorías cargadas:", data);
+        
+        // Guardamos las asesorías y renderizamos
+        asesorias = data;
+        renderizarAsesorias();
+        
+      } catch (error) {
+        console.error("Error al cargar asesorías:", error);
+        document.getElementById('asesoriasTable').innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: red;">
+              Error al cargar las asesorías: ${error.message}
+              <br><br>
+              <button onclick="cargarAsesorias()">Intentar nuevamente</button>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderizarAsesorias() {
+      const tabla = document.getElementById('asesoriasTable');
+      
+      if (!asesorias.length) {
+        tabla.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center;">
+              No hay asesorías disponibles en este momento.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      let html = '';
+      
+      asesorias.forEach((asesoria) => {
+        // Determinar qué ID usar: ID_asesoria o _id
+        const asesoriaId = asesoria.ID_asesoria || asesoria._id;
+        
+        // Fila principal con datos
+        html += `
+          <tr>
+            <td>${asesoriaId}</td>
+            <td>${asesoria.materia}</td>
+            <td>@asesor${asesoria.ID_asesor || ''}</td>
+            <td>${asesoria.dia} ${asesoria.inicio} - ${asesoria.fin}</td>
+            <td>${asesoria.modalidad}</td>
+            <td><span class="info-icon" onclick="toggleDropdown(this)">i</span></td>
+          </tr>
+          <tr class="dropdown-row">
+            <td colspan="6">
+              <div class="dropdown-content">
+                ${asesoria.descripcion ? `<p><strong>Descripción:</strong> ${asesoria.descripcion}</p>` : '<p><strong>Descripción:</strong> No disponible</p>'}
+                <p><strong>Estado:</strong> ${asesoria.estado || 'pendiente'}</p>
+                <button onclick="inscribirAsesoria('${asesoriaId}')">Inscribir</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      tabla.innerHTML = html;
+    }
+
     function toggleDropdown(element) {
       const row = element.closest('tr').nextElementSibling;
       const dropdown = row.querySelector('.dropdown-content');
+      
+      // Cerrar todos los dropdowns abiertos
+      document.querySelectorAll('.dropdown-content').forEach(item => {
+        if (item !== dropdown && item.style.display === 'block') {
+          item.style.display = 'none';
+        }
+      });
+      
+      // Alternar el actual
       dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     }
 
-    function toggleInscribir(button) {
-      button.innerText = 'Inscrita';
-      button.disabled = true;
+    async function inscribirAsesoria(asesoriaId) {
+      try {
+        // Verificar si hay un usuario actual
+        if (!usuarioActual || !usuarioActual.id) {
+          mostrarAlerta("Debes iniciar sesión para inscribirte a una asesoría", true);
+          return;
+        }
+        
+        // Encontrar la asesoría en el array local
+        const asesoria = asesorias.find(a => 
+          (a.ID_asesoria && a.ID_asesoria.toString() === asesoriaId.toString()) || 
+          (a._id && a._id.toString() === asesoriaId.toString())
+        );
+        
+        if (!asesoria) {
+          mostrarAlerta("No se encontró la asesoría seleccionada", true);
+          return;
+        }
+        
+        console.log("Inscribiendo a asesoría:", asesoria);
+        
+        // Comprobar si ya está inscrito (verificando en localStorage)
+        const inscripcionesLocal = JSON.parse(localStorage.getItem('inscripcionesAlumno') || '[]');
+        const yaInscrito = inscripcionesLocal.some(inscripcion => {
+          const a = inscripcion.asesoria;
+          return (a.ID_asesoria && a.ID_asesoria.toString() === asesoriaId.toString()) || 
+                 (a._id && a._id.toString() === asesoriaId.toString()) ||
+                 (asesoria.materia && a.materia === asesoria.materia);
+        });
+        
+        if (yaInscrito) {
+          mostrarAlerta("Ya estás inscrito en esta asesoría", true);
+          // Actualizar la interfaz para mostrar como inscrito
+          const button = event.target;
+          button.innerText = 'Inscrito';
+          button.disabled = true;
+          return;
+        }
+        
+        // Crear nueva inscripción directamente en localStorage
+        const nuevaInscripcion = {
+          id: Date.now().toString(), // ID único basado en timestamp
+          asesoria: asesoria,
+          fecha: new Date().toISOString()
+        };
+        
+        // Guardar en localStorage
+        inscripcionesLocal.push(nuevaInscripcion);
+        localStorage.setItem('inscripcionesAlumno', JSON.stringify(inscripcionesLocal));
+        
+        // Actualizar la interfaz
+        const button = event.target;
+        button.innerText = 'Inscrito';
+        button.disabled = true;
+        
+        // Mostrar mensaje de éxito
+        mostrarAlerta("¡Te has inscrito exitosamente a la asesoría!");
+        
+        // Guardar en sessionStorage para mostrar mensaje en IndexAlumno
+        sessionStorage.setItem('nuevaInscripcion', 'true');
+        
+        console.log("Inscripción guardada localmente:", nuevaInscripcion);
+        console.log("Total de inscripciones:", inscripcionesLocal.length);
+        
+      } catch (error) {
+        console.error("Error al inscribirse:", error);
+        mostrarAlerta(error.message || "Error al inscribirse en la asesoría", true);
+      }
+    }
+
+    function mostrarAlerta(mensaje, esError = false) {
+      const alerta = document.getElementById('alertMessage');
+      alerta.textContent = mensaje;
+      alerta.style.display = 'block';
+      
+      if (esError) {
+        alerta.classList.add('error');
+      } else {
+        alerta.classList.remove('error');
+      }
+      
+      // Ocultar después de 5 segundos
+      setTimeout(() => {
+        alerta.style.display = 'none';
+      }, 5000);
+    }
+
+    function volverAInicio() {
+      window.location.href = 'IndexAlumno.html';
     }
   </script>
 </body>
