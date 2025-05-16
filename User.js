@@ -37,6 +37,10 @@ const userSchema = new mongoose.Schema({
     collection: 'users'
 });
 
+userSchema.methods.comparePassword = async function(contra) {
+    return await bcrypt.compare(contra, this.contra);
+};
+
 userSchema.plugin(AutoIncrement, { 
     inc_field: 'ID_usuario', 
     startAt: 1 

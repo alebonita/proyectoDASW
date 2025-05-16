@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asesorías</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       margin: 0;
@@ -97,95 +99,360 @@
       align-items: center;
       justify-content: center;
     }
+
+    /* Estilos para el buscador */
+    .search-container {
+      margin-bottom: 15px;
+    }
+
+    .search-container input {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      width: 200px;
+    }
   </style>
 </head>
 <body>
-  <div class="header">👤 Bienvenido @asesor</div>
+  <div class="header"> Bienvenido @asesor</div>
 
   <div class="container">
     <!-- Asesorías -->
     <div class="section">
       <div class="title">Asesorías</div>
       <div class="buttons-container">
-        <button onclick="agregarAsesoria()">+</button>
-        <button onclick="buscarAsesoria()">🔍</button>
+        <button data-bs-toggle="modal" data-bs-target="#asesoriaModal">+</button>
+        <button onclick="mostrarBuscador()">🔍</button>
+      </div>
+      <div class="search-container" id="searchContainer" style="display: none;">
+        <input type="text" id="searchInput" placeholder="Buscar asesoría...">
+        <button onclick="buscarAsesoria()">Buscar</button>
       </div>
       <div id="asesorias-container"></div>
     </div>
   </div>
 
-  <script>
-    let asesorias = [
-      {
-        nombre: "MATEMÁTICAS",
-        horario: "3:00 a 4:00 pm",
-        asesor: "@usuario",
-        modalidad: "Presencial",
-        imagen: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQN9jZ7n8rUMxSK27j7UXQu79JhXabGS3CnmQ&s"
-      },
-      {
-        nombre: "QUÍMICA",
-        horario: "3:00 a 4:00 pm",
-        asesor: "@usuario",
-        modalidad: "Presencial",
-        imagen: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_nfc2IxR-RG4nI8XBWskpL7qMfcxyhZjHMg&s"
-      }
-    ];
+  <!-- Modal para agregar asesorías -->
+  <div class="modal fade" id="asesoriaModal" tabindex="-1" aria-labelledby="asesoriaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="asesoriaModalLabel">Nueva Asesoría</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+        <div class="modal-body">
+          <form id="asesoriaForm">
+            <div class="mb-3">
+              <label class="form-label">Materia</label>
+              <input type="text" class="form-control" id="materiaInput" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Día</label>
+              <select class="form-select" id="diaInput" required>
+                <option value="Lunes">Lunes</option>
+                <option value="Martes">Martes</option>
+                <option value="Miercoles">Miércoles</option>
+                <option value="Jueves">Jueves</option>
+                <option value="Viernes">Viernes</option>
+                <option value="Sábado">Sábado</option>
+                <option value="Domingo">Domingo</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Hora de inicio</label>
+              <input type="time" class="form-control" id="inicioInput" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Hora de fin</label>
+              <input type="time" class="form-control" id="finInput" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Modalidad</label>
+              <select class="form-select" id="modalidadInput" required>
+                <option value="presencial">Presencial</option>
+                <option value="virtual">Virtual</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Descripción</label>
+              <textarea class="form-control" id="descripcionInput"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Imagen</label>
+              <input type="file" class="form-control" id="imagenInput" accept="image/*">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="guardarAsesoria()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    function renderizarAsesorias() {
+  <!-- Bootstrap JS y dependencias -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    // Variable global para almacenar las asesorías
+    let asesorias = [];
+    let usuarioActual = null;
+
+    // Cargar asesorías al iniciar la página
+    document.addEventListener('DOMContentLoaded', async() => {
+      await cargarUsuarioActual();
+      await cargarAsesorias();
+    });
+
+    async function cargarUsuarioActual() {
+        try {
+            const response = await fetch('/api/usuario-actual', {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Error al obtener usuario');
+            }
+            
+            usuarioActual = await response.json();
+            actualizarHeader();
+        } catch (error) {
+            console.error("Error al cargar usuario:", error);
+            document.querySelector('.header').textContent = '👤 Bienvenido Asesor';
+        }
+    }
+
+    function actualizarHeader() {
+        if (usuarioActual && usuarioActual.nombre) {
+            const header = document.querySelector('.header');
+            header.innerHTML = `👤 Bienvenido ${usuarioActual.nombre}`;
+            
+            // Opcional: agregar botón de cerrar sesión
+            header.innerHTML += `
+                <button onclick="cerrarSesion()" 
+                        style="float: right; background: none; border: none; color: white; cursor: pointer;">
+                    Cerrar sesión
+                </button>`;
+        }
+    }
+
+
+    // Función para cargar asesorías desde el servidor
+    async function cargarAsesorias() {
+      const contenedor = document.getElementById("asesorias-container");
+      contenedor.innerHTML = '<p class="text-center">Cargando asesorías...</p>';
+
+      try {
+        const response = await fetch('http://localhost:8000/api/asesorias', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || `Error ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data || data.length === 0) {
+          contenedor.innerHTML = '<p class="text-center">No hay asesorías registradas aún</p>';
+          return;
+        }
+        
+        // Guarda en localStorage como respaldo
+        localStorage.setItem('asesoriasBackup', JSON.stringify(data));
+        renderizarAsesorias(data);
+        
+      } catch (error) {
+        console.error("Error detallado:", error);
+        
+        // Intenta con datos de localStorage
+        const backup = localStorage.getItem('asesoriasBackup');
+        if (backup) {
+          try {
+            renderizarAsesorias(JSON.parse(backup));
+            return;
+          } catch (e) {
+            console.error("Error al parsear backup:", e);
+          }
+        }
+        
+        // Muestra datos de ejemplo con imagen local
+        contenedor.innerHTML = `
+          <div class="card">
+            <img src="images/placeholder.jpg" alt="Ejemplo">
+            <div class="card-info">
+              <h3>EJEMPLO DE ASESORÍA</h3>
+              <p><strong>Error:</strong> ${error.message}</p>
+              <p>No se pudo conectar al servidor. Mostrando datos locales.</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+// Función de respaldo para mostrar datos de ejemplo
+
+    // Función para renderizar las asesorías en el DOM
+    function renderizarAsesorias(asesorias) {
       const contenedor = document.getElementById("asesorias-container");
       contenedor.innerHTML = "";
-      asesorias.forEach((a, index) => {
+      
+      asesorias.forEach((a) => {
         contenedor.innerHTML += `
           <div class="card">
-            <img src="${a.imagen}" alt="imagen">
+            <img src="${a.imagen || 'https://via.placeholder.com/150'}" alt="${a.materia}">
             <div class="card-info">
-              <button class="delete-btn" onclick="eliminarAsesoria(${index})">✕</button>
-              <h3>${a.nombre}</h3>
-              <p><strong>Horario:</strong> ${a.horario}</p>
-              <p><strong>Asesor:</strong> ${a.asesor}</p>
+              <button class="delete-btn" onclick="eliminarAsesoria('${a._id}')">✕</button>
+              <h3>${a.materia}</h3>
+              <p><strong>Horario:</strong> ${a.dia} ${a.inicio} - ${a.fin}</p>
               <p><strong>Modalidad:</strong> ${a.modalidad}</p>
+              <p><strong>Estado:</strong> ${a.estado}</p>
+              ${a.descripcion ? `<p><strong>Descripción:</strong> ${a.descripcion}</p>` : ''}
             </div>
           </div>`;
       });
     }
 
-    function agregarAsesoria() {
-      const nombre = prompt("Nombre de la asesoría:");
-      const horario = prompt("Horario:");
-      const modalidad = prompt("Modalidad:");
-      const asesor = prompt("Asesor:");
-      if (nombre && horario && modalidad && asesor) {
-        asesorias.push({
-          nombre,
-          horario,
-          modalidad,
-          asesor,
-          imagen: "https://via.placeholder.com/150"
+    // Función para guardar una nueva asesoría
+    async function guardarAsesoria() {
+      const formData = new FormData();
+      const imagenInput = document.getElementById('imagenInput');
+      
+      // Asegúrate de que todos los campos requeridos estén presentes
+      const materia = document.getElementById('materiaInput').value;
+      const dia = document.getElementById('diaInput').value;
+      const inicio = document.getElementById('inicioInput').value;
+      const fin = document.getElementById('finInput').value;
+      const modalidad = document.getElementById('modalidadInput').value;
+      
+      if (!materia || !dia || !inicio || !fin || !modalidad) {
+        alert("Por favor complete todos los campos requeridos");
+        return;
+      }
+
+      // Usa el mismo nombre de campos que espera el backend
+      formData.append('ID_asesor', '1'); // Temporal - deberías obtenerlo de la sesión
+      formData.append('materia', materia);
+      formData.append('descripcion', document.getElementById('descripcionInput').value);
+      formData.append('modalidad', modalidad);
+      formData.append('dia', dia);
+      formData.append('inicio', inicio);
+      formData.append('fin', fin);
+      
+      if (imagenInput.files[0]) {
+        formData.append('imagen', imagenInput.files[0]);
+      }
+
+      try {
+        const response = await fetch('http://localhost:8000/api/asesorias', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
         });
-        renderizarAsesorias();
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || errorData.message || 'Error al guardar');
+        }
+        
+        const result = await response.json();
+        console.log("Asesoría creada:", result);
+        
+        // Actualiza la lista sin recargar
+        const asesoriasActuales = JSON.parse(localStorage.getItem('asesoriasBackup')) || [];
+        asesoriasActuales.unshift(result); // Agrega la nueva asesoría al inicio
+        localStorage.setItem('asesoriasBackup', JSON.stringify(asesoriasActuales));
+        renderizarAsesorias(asesoriasActuales);
+        
+        // Limpiar y cerrar modal
+        document.getElementById('asesoriaForm').reset();
+        bootstrap.Modal.getInstance(document.getElementById('asesoriaModal')).hide();
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert(`Error al guardar: ${error.message}`);
       }
     }
 
-    function eliminarAsesoria(index) {
-      if (confirm("¿Estás seguro de que quieres eliminar esta asesoría?")) {
-        asesorias.splice(index, 1);
-        renderizarAsesorias();
+    // Función para eliminar una asesoría
+    async function eliminarAsesoria(id) {
+      if (!confirm("¿Estás seguro de que quieres eliminar esta asesoría?")) return;
+      
+      try {
+        const response = await fetch(`http://localhost:8000/api/asesorias/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al eliminar');
+        }
+
+        // Actualiza la lista local sin recargar
+        const contenedor = document.getElementById("asesorias-container");
+        const cards = contenedor.querySelectorAll('.card');
+        
+        cards.forEach(card => {
+          if (card.querySelector('.delete-btn').onclick.toString().includes(id)) {
+            card.remove(); // Elimina visualmente la tarjeta
+          }
+        });
+        
+        // Actualiza los datos en localStorage
+        const asesoriasActuales = JSON.parse(localStorage.getItem('asesoriasBackup') || []);
+        const nuevasAsesorias = asesoriasActuales.filter(a => a._id !== id);
+        localStorage.setItem('asesoriasBackup', JSON.stringify(nuevasAsesorias));
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert(`Error al eliminar: ${error.message}`);
       }
     }
 
+    function mostrarDatosDeEjemplo() {
+      console.log("Mostrando datos de ejemplo");
+      const contenedor = document.getElementById("asesorias-container");
+      contenedor.innerHTML = `
+      <div class="card">
+        <div class="placeholder-img" style="width:40%;height:100%;display:flex;align-items:center;justify-content:center;background:#f0f0f0;">
+          Sin imagen
+        </div>
+        <div class="card-info">
+          <h3>EJEMPLO DE ASESORÍA</h3>
+          <p><strong>Error:</strong> ${error.message}</p>
+          <p>No se pudo conectar al servidor</p>
+        </div>
+      </div>
+`;
+    }
+
+    // Función para mostrar/ocultar el buscador
+    function mostrarBuscador() {
+      const searchContainer = document.getElementById('searchContainer');
+      searchContainer.style.display = searchContainer.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Función para buscar asesorías
     function buscarAsesoria() {
-      const consulta = prompt("Buscar asesoría por nombre:");
-      if (!consulta) return;
-      const resultado = asesorias.filter(a => a.nombre.toLowerCase().includes(consulta.toLowerCase()));
-      if (resultado.length > 0) {
-        alert("Se encontraron " + resultado.length + " coincidencias.");
-      } else {
-        alert("No se encontró ninguna asesoría con ese nombre.");
+      const consulta = document.getElementById('searchInput').value.toLowerCase();
+      if (!consulta) {
+        renderizarAsesorias(asesorias);
+        return;
       }
+      
+      const resultado = asesorias.filter(a => 
+        a.materia.toLowerCase().includes(consulta) ||
+        (a.descripcion && a.descripcion.toLowerCase().includes(consulta))
+      );
+      
+      renderizarAsesorias(resultado);
     }
-
-    renderizarAsesorias();
   </script>
 </body>
 </html>
