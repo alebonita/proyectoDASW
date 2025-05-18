@@ -244,7 +244,7 @@
 </head>
 <body>
   <div class="header">
-    <span id="userWelcome">👤 Bienvenido @usuario</span>
+    <span id="userWelcome"> Bienvenido @usuario</span>
     <button class="menu-btn" onclick="toggleModal()">☰</button>
   </div>
 
@@ -366,7 +366,7 @@
       if (!usuarioActual) return;
       
       // Actualizar la información en el header
-      document.getElementById('userWelcome').textContent = `👤 Bienvenido ${usuarioActual.nombre}`;
+      document.getElementById('userWelcome').textContent = ` Bienvenido ${usuarioActual.nombre}`;
       
       // Actualizar la información en el modal
       document.getElementById('userName').textContent = usuarioActual.nombre || 'No disponible';
