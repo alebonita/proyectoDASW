@@ -253,9 +253,9 @@
     <span class="close-btn" onclick="toggleModal()">&times;</span>
     <div class="modal-content">
       <h3>Información de la cuenta</h3>
-      <p><strong>Nombre:</strong> <span id="userName">Alumno</span></p>
-      <p><strong>Correo:</strong> <span id="userEmail">alumno@example.com</span></p>
-      <p><strong>Tipo de cuenta:</strong> <span id="userType">Alumno</span></p>
+      <p><strong>Nombre:</strong> <span id="userName">Cargando...</span></p>
+      <p><strong>Correo:</strong> <span id="userEmail">Cargando...</span></p>
+      <p><strong>Tipo de cuenta:</strong> <span id="userType">Cargando...</span></p>
       <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
     </div>
   </div>
@@ -325,46 +325,54 @@
     
     async function cargarUsuarioActual() {
       try {
+        // Intentar cargar los datos del usuario desde localStorage
+        const usuarioData = localStorage.getItem('usuario');
+        
+        if (usuarioData) {
+          usuarioActual = JSON.parse(usuarioData);
+          console.log("Usuario cargado desde localStorage:", usuarioActual);
+          actualizarInfoUsuario();
+          return;
+        }
+        
+        // Si no hay datos en localStorage, intentar obtenerlos del servidor
         const response = await fetch(`${API_URL}/api/usuario-actual`, {
           credentials: 'include'
         });
         
         if (!response.ok) {
-          console.log('Usuario no autenticado, usando perfil predeterminado');
-          usuarioActual = { 
-            id: '1', 
-            nombre: 'Alumno', 
-            correo: 'alumno@example.com',
-            tipo_usuario: 'alumno' 
-          };
-          actualizarInfoUsuario();
+          console.log('No se pudo obtener el usuario del servidor, redirigiendo al login');
+          window.location.href = "login.html";
           return;
         }
         
         usuarioActual = await response.json();
-        console.log("Usuario cargado:", usuarioActual);
+        console.log("Usuario cargado desde el servidor:", usuarioActual);
+        
+        // Guardamos los datos en localStorage para futuras referencias
+        localStorage.setItem('usuario', JSON.stringify(usuarioActual));
+        
         actualizarInfoUsuario();
       } catch (error) {
         console.error("Error al cargar usuario:", error);
-        usuarioActual = { 
-          id: '1', 
-          nombre: 'Alumno', 
-          correo: 'alumno@example.com',
-          tipo_usuario: 'alumno' 
-        };
-        actualizarInfoUsuario();
+        mostrarAlerta("Error al cargar los datos del usuario. Por favor, inicia sesión nuevamente.", true);
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 3000);
       }
     }
     
     function actualizarInfoUsuario() {
+      if (!usuarioActual) return;
+      
       // Actualizar la información en el header
       document.getElementById('userWelcome').textContent = `👤 Bienvenido ${usuarioActual.nombre}`;
       
       // Actualizar la información en el modal
-      document.getElementById('userName').textContent = usuarioActual.nombre;
-      document.getElementById('userEmail').textContent = usuarioActual.correo;
-      document.getElementById('userType').textContent = 
-        usuarioActual.tipo_usuario.charAt(0).toUpperCase() + usuarioActual.tipo_usuario.slice(1);
+      document.getElementById('userName').textContent = usuarioActual.nombre || 'No disponible';
+      document.getElementById('userEmail').textContent = usuarioActual.correo || 'No disponible';
+      document.getElementById('userType').textContent = usuarioActual.tipo_usuario ? 
+        (usuarioActual.tipo_usuario.charAt(0).toUpperCase() + usuarioActual.tipo_usuario.slice(1)) : 'No disponible';
     }
     
     async function cargarInscripciones() {
@@ -512,6 +520,9 @@
         }, 300); // Tiempo igual a la duración de la transición
       } else {
         // Abrir el modal
+        // Asegurarnos de tener la información más actualizada
+        actualizarInfoUsuario();
+        
         modal.style.display = "block";
         // Pequeño retardo para que la transición funcione
         setTimeout(() => {
@@ -523,6 +534,7 @@
     function logout() {
       // Borrar datos locales
       localStorage.removeItem('inscripcionesAlumno');
+      localStorage.removeItem('usuario'); // Eliminar los datos del usuario
       
       // Intentar hacer logout en el servidor
       fetch(`${API_URL}/api/logout`, {
