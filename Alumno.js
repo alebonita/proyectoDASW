@@ -1,5 +1,4 @@
 import Usuario from './Usuario.js';
-import { guardarEnStorage, obtenerDeStorage } from './storage.js';
 
 export default class Alumno extends Usuario {
   constructor(id, nombre, correo) {
