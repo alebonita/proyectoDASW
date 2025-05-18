@@ -20,12 +20,43 @@
       padding: 15px;
       font-size: 20px;
       font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .container {
       padding: 20px;
-      max-width: 800px;
+      max-width: 1200px; /* Aumentado para mejor distribución */
       margin: 0 auto;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 0 -15px;
+    }
+
+    .col-left {
+      flex: 0 0 60%;
+      max-width: 60%;
+      padding: 0 15px;
+    }
+
+    .col-right {
+      flex: 0 0 40%;
+      max-width: 40%;
+      padding: 0 15px;
+    }
+
+    @media (max-width: 768px) {
+      .col-left, .col-right {
+        flex: 0 0 100%;
+        max-width: 100%;
+      }
+      .col-right {
+        margin-top: 20px;
+      }
     }
 
     .title {
@@ -120,28 +151,157 @@
       border: 1px solid #ddd;
       width: 200px;
     }
+    
+    /* Estilos para el calendario */
+    .calendar {
+      border-radius: 10px;
+      overflow: hidden;
+      width: 100%;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .calendar-header {
+      background-color: #CE93D8;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-weight: bold;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      padding: 10px;
+      text-align: center;
+      background-color: white;
+    }
+
+    .day-name {
+      font-weight: bold;
+      padding: 5px;
+    }
+
+    .day {
+      padding: 10px;
+      border-radius: 50%;
+    }
+
+    .marked {
+      background-color: #FFE699;
+      border-radius: 50%;
+    }
+
+    /* INICIO: Estilos específicos para el modal del menú */
+    .menu-btn {
+      font-size: 24px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: white;
+    }
+
+    .menu-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 250px;
+      background-color: white;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+      height: 100vh;
+      z-index: 1000;
+      padding: 20px;
+      box-sizing: border-box;
+      transform: translateX(100%); /* Comienza fuera de la pantalla */
+      transition: transform 0.3s ease-in-out;
+    }
+    
+    .menu-modal.show {
+      transform: translateX(0); /* Se desliza hacia la vista */
+    }
+
+    .menu-modal-content {
+      margin-top: 20px;
+    }
+
+    .menu-modal-content p {
+      margin: 10px 0;
+      color: #622C71;
+    }
+
+    .logout-btn {
+      background-color: #622C71;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .menu-close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    /* FIN: Estilos específicos para el modal del menú */
   </style>
 </head>
 <body>
-  <div class="header"> Bienvenido @asesor</div>
+  <div class="header">
+    <span id="userWelcome">👤 Bienvenido @asesor</span>
+    <button class="menu-btn" onclick="toggleModal()">☰</button>
+  </div>
 
-  <div class="container">
-    <!-- Asesorías -->
-    <div class="section">
-      <div class="title">Asesorías</div>
-      <div class="buttons-container">
-        <button data-bs-toggle="modal" data-bs-target="#asesoriaModal">+</button>
-        <button onclick="mostrarBuscador()">🔍</button>
-      </div>
-      <div class="search-container" id="searchContainer" style="display: none;">
-        <input type="text" id="searchInput" placeholder="Buscar asesoría...">
-        <button onclick="buscarAsesoria()">Buscar</button>
-      </div>
-      <div id="asesorias-container"></div>
+  <!-- Modal del menú (nuevo) -->
+  <div id="accountModal" class="menu-modal">
+    <span class="menu-close-btn" onclick="toggleModal()">&times;</span>
+    <div class="menu-modal-content">
+      <h3>Información de la cuenta</h3>
+      <p><strong>Nombre:</strong> <span id="userName">Cargando...</span></p>
+      <p><strong>Correo:</strong> <span id="userEmail">Cargando...</span></p>
+      <p><strong>Tipo de cuenta:</strong> <span id="userType">Cargando...</span></p>
+      <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
     </div>
   </div>
 
-  <!-- Modal para agregar asesorías -->
+  <div class="container">
+    <div class="row">
+      <!-- Asesorías (ahora a la izquierda) -->
+      <div class="col-left">
+        <div class="section">
+          <div class="title">Asesorías</div>
+          <div class="buttons-container">
+            <button data-bs-toggle="modal" data-bs-target="#asesoriaModal">+</button>
+            <button onclick="mostrarBuscador()">🔍</button>
+          </div>
+          <div class="search-container" id="searchContainer" style="display: none;">
+            <input type="text" id="searchInput" placeholder="Buscar asesoría...">
+            <button onclick="buscarAsesoria()">Buscar</button>
+          </div>
+          <div id="asesorias-container"></div>
+        </div>
+      </div>
+
+      <!-- Calendario (ahora a la derecha) -->
+      <div class="col-right">
+        <div class="section">
+          <div class="title">Calendario</div>
+          <div class="calendar">
+            <div class="calendar-header">CALENDARIO</div>
+            <div id="calendar-grid" class="calendar-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para agregar asesorías (ya existente) -->
   <div class="modal fade" id="asesoriaModal" tabindex="-1" aria-labelledby="asesoriaModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -207,12 +367,14 @@
     // Variable global para almacenar las asesorías
     let asesorias = [];
     let usuarioActual = null;
+    const API_URL = 'http://localhost:8000';
 
     // Cargar asesorías al iniciar la página
     document.addEventListener('DOMContentLoaded', async() => {
       try {
         await cargarUsuarioActual();
         await cargarAsesorias();
+        renderizarCalendario();
       } catch (error) {
         console.error("Error al inicializar:", error);
         alert("Error al inicializar la página. Verifica la conexión con el servidor.");
@@ -220,37 +382,77 @@
     });
 
     async function cargarUsuarioActual() {
-        try {
-            const response = await fetch('http://localhost:8000/api/usuario-actual', {
-                credentials: 'include'
-            });
-            
-            if (!response.ok) {
-                console.log('Usuario no autenticado, usando perfil predeterminado');
-                document.querySelector('.header').textContent = '👤 Bienvenido Asesor';
-                return;
-            }
-            
-            usuarioActual = await response.json();
-            actualizarHeader();
-        } catch (error) {
-            console.error("Error al cargar usuario:", error);
-            document.querySelector('.header').textContent = '👤 Bienvenido Asesor';
+      try {
+        // Intentar cargar los datos del usuario desde localStorage
+        const usuarioData = localStorage.getItem('usuario');
+        
+        if (usuarioData) {
+          usuarioActual = JSON.parse(usuarioData);
+          console.log("Usuario cargado desde localStorage:", usuarioActual);
+          actualizarInfoUsuario();
+          return;
         }
+        
+        // Si no hay datos en localStorage, intentar obtenerlos del servidor
+        const response = await fetch(`${API_URL}/api/usuario-actual`, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          console.log('No se pudo obtener el usuario del servidor, redirigiendo al login');
+          window.location.href = "login.html";
+          return;
+        }
+        
+        usuarioActual = await response.json();
+        console.log("Usuario cargado desde el servidor:", usuarioActual);
+        
+        // Guardamos los datos en localStorage para futuras referencias
+        localStorage.setItem('usuario', JSON.stringify(usuarioActual));
+        
+        actualizarInfoUsuario();
+      } catch (error) {
+        console.error("Error al cargar usuario:", error);
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 3000);
+      }
     }
 
-    function actualizarHeader() {
-        if (usuarioActual && usuarioActual.nombre) {
-            const header = document.querySelector('.header');
-            header.innerHTML = `👤 Bienvenido ${usuarioActual.nombre}`;
-            
-             // agregar botón de cerrar sesión
-            header.innerHTML += `
-                <button onclick="cerrarSesion()" 
-                        style="float: right; background: none; border: none; color: white; cursor: pointer;">
-                    Cerrar sesión
-                </button>`;
-        }
+    function actualizarInfoUsuario() {
+      if (!usuarioActual) return;
+      
+      // Actualizar la información en el header
+      document.getElementById('userWelcome').textContent = `👤 Bienvenido ${usuarioActual.nombre}`;
+      
+      // Actualizar la información en el modal
+      document.getElementById('userName').textContent = usuarioActual.nombre || 'No disponible';
+      document.getElementById('userEmail').textContent = usuarioActual.correo || 'No disponible';
+      document.getElementById('userType').textContent = usuarioActual.tipo_usuario ? 
+        (usuarioActual.tipo_usuario.charAt(0).toUpperCase() + usuarioActual.tipo_usuario.slice(1)) : 'No disponible';
+    }
+
+    // Toggle para el modal del menú
+    function toggleModal() {
+      const modal = document.getElementById("accountModal");
+      
+      if (modal.classList.contains('show')) {
+        // Cerrar el modal
+        modal.classList.remove("show");
+        setTimeout(() => {
+          modal.style.display = "none";
+        }, 300); // Tiempo igual a la duración de la transición
+      } else {
+        // Abrir el modal
+        // Asegurarnos de tener la información más actualizada
+        actualizarInfoUsuario();
+        
+        modal.style.display = "block";
+        // Pequeño retardo para que la transición funcione
+        setTimeout(() => {
+          modal.classList.add("show");
+        }, 10);
+      }
     }
 
     // Función para cargar asesorías desde el servidor
@@ -340,6 +542,53 @@
             </div>
           </div>`;
       });
+      
+      // Actualizar el calendario cada vez que se renderizan las asesorías
+      renderizarCalendario();
+    }
+    
+    // Función para renderizar el calendario
+    function renderizarCalendario() {
+      const mesActual = new Date();
+      const diasMes = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0).getDate();
+      const primerDiaSemana = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1).getDay();
+      
+      const grid = document.getElementById("calendar-grid");
+      grid.innerHTML = "";
+
+      const diasSemana = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+      for (let i = 0; i < diasSemana.length; i++) {
+        grid.innerHTML += `<div class="day-name">${diasSemana[i]}</div>`;
+      }
+
+      // Espacios en blanco para los días antes del primer día del mes
+      for (let i = 0; i < primerDiaSemana; i++) {
+        grid.innerHTML += `<div></div>`;
+      }
+
+      // Obtener los días con asesorías
+      const diasConAsesorias = {};
+      asesorias.forEach(a => {
+        if (a.dia) {
+          // Convertir nombre de día a número
+          const dias = {'Lunes': 1, 'Martes': 2, 'Miercoles': 3, 'Miércoles': 3, 'Jueves': 4, 'Viernes': 5, 'Sábado': 6, 'Sabado': 6, 'Domingo': 0};
+          const numeroDia = dias[a.dia];
+          
+          // Marcar todos los días de la semana que coincidan
+          for (let d = 1; d <= diasMes; d++) {
+            const diaSemana = (primerDiaSemana + d - 1) % 7;
+            if (diaSemana === numeroDia) {
+              diasConAsesorias[d] = true;
+            }
+          }
+        }
+      });
+
+      // Generar el calendario
+      for (let d = 1; d <= diasMes; d++) {
+        const marcada = diasConAsesorias[d] ? 'marked' : '';
+        grid.innerHTML += `<div class="day ${marcada}">${d}</div>`;
+      }
     }
 
     // Función para guardar una nueva asesoría
@@ -471,6 +720,25 @@
       );
       
       renderizarAsesorias(resultado);
+    }
+    
+    // Función para cerrar sesión
+    function cerrarSesion() {
+      // Borrar datos locales
+      localStorage.removeItem('asesoriasBackup');
+      localStorage.removeItem('usuario'); // Eliminar los datos del usuario
+      
+      // Intentar hacer logout en el servidor
+      fetch(`${API_URL}/api/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      }).catch(error => {
+        console.error("Error al cerrar sesión en el servidor:", error);
+      }).finally(() => {
+        // Redirigir a la página de login
+        alert("Sesión cerrada. Redirigiendo al login...");
+        window.location.href = "login.html";
+      });
     }
   </script>
 </body>
