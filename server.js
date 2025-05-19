@@ -16,7 +16,6 @@ const multer = require('multer');
 const fs = require('fs');
 const cors = require('cors');
 
-const cors = require('cors');
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://tu-app-frontend.onrender.com'] 
