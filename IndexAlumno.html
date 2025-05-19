@@ -43,12 +43,12 @@
       z-index: 1000;
       padding: 20px;
       box-sizing: border-box;
-      transform: translateX(100%); /* Comienza fuera de la pantalla */
+      transform: translateX(100%);
       transition: transform 0.3s ease-in-out;
     }
     
     .modal.show {
-      transform: translateX(0); /* Se desliza hacia la vista */
+      transform: translateX(0);
     }
 
     .modal-content {
@@ -109,8 +109,7 @@
       font-size: 22px;
       cursor: pointer;
     }
-    
-    /* Estilos para el buscador */
+
     .search-container {
       display: none;
       margin-bottom: 15px;
@@ -147,7 +146,7 @@
       border-radius: 8px;
       overflow: hidden;
       position: relative;
-      min-height: 150px; /* Altura mínima para la tarjeta */
+      min-height: 150px; 
     }
 
     .card img {
@@ -248,7 +247,6 @@
     <button class="menu-btn" onclick="toggleModal()">☰</button>
   </div>
 
-  <!-- Modal del menú -->
   <div id="accountModal" class="modal">
     <span class="close-btn" onclick="toggleModal()">&times;</span>
     <div class="modal-content">
@@ -288,27 +286,24 @@
   </div>
 
   <script>
-    // Variables globales
+
     let asesorias = [];
-    let asesoriasOriginal = []; // Para guardar la lista completa antes de filtrar
+    let asesoriasOriginal = []; 
     let usuarioActual = null;
     const API_URL = 'http://localhost:8000';
     
-    // Cargar datos al iniciar la página
     document.addEventListener('DOMContentLoaded', async() => {
       try {
         await cargarUsuarioActual();
         await cargarInscripciones();
         renderizarCalendario();
         
-        // Verificar si hay alguna inscripción reciente
         const nuevaInscripcion = sessionStorage.getItem('nuevaInscripcion');
         if (nuevaInscripcion) {
           mostrarAlerta('¡Te has inscrito exitosamente a una asesoría!');
           sessionStorage.removeItem('nuevaInscripcion');
         }
         
-        // Añadir evento de teclado para buscar con Enter
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
           searchInput.addEventListener('keypress', function(e) {
@@ -325,7 +320,6 @@
     
     async function cargarUsuarioActual() {
       try {
-        // Intentar cargar los datos del usuario desde localStorage
         const usuarioData = localStorage.getItem('usuario');
         
         if (usuarioData) {
@@ -334,8 +328,7 @@
           actualizarInfoUsuario();
           return;
         }
-        
-        // Si no hay datos en localStorage, intentar obtenerlos del servidor
+
         const response = await fetch(`${API_URL}/api/usuario-actual`, {
           credentials: 'include'
         });
@@ -349,7 +342,6 @@
         usuarioActual = await response.json();
         console.log("Usuario cargado desde el servidor:", usuarioActual);
         
-        // Guardamos los datos en localStorage para futuras referencias
         localStorage.setItem('usuario', JSON.stringify(usuarioActual));
         
         actualizarInfoUsuario();
@@ -365,10 +357,8 @@
     function actualizarInfoUsuario() {
       if (!usuarioActual) return;
       
-      // Actualizar la información en el header
       document.getElementById('userWelcome').textContent = `👤 Bienvenido ${usuarioActual.nombre}`;
-      
-      // Actualizar la información en el modal
+
       document.getElementById('userName').textContent = usuarioActual.nombre || 'No disponible';
       document.getElementById('userEmail').textContent = usuarioActual.correo || 'No disponible';
       document.getElementById('userType').textContent = usuarioActual.tipo_usuario ? 
@@ -377,21 +367,20 @@
     
     async function cargarInscripciones() {
       try {
-        // Mostrar mensaje de carga
+
         document.getElementById('asesorias-container').innerHTML = 
           '<p class="no-asesorias">Cargando asesorías...</p>';
         
-        // Cargar directamente desde localStorage para simplificar el proceso
+
         const inscripcionesLocal = JSON.parse(localStorage.getItem('inscripcionesAlumno') || '[]');
         console.log("Inscripciones cargadas desde localStorage:", inscripcionesLocal);
         
         if (inscripcionesLocal.length > 0) {
           asesorias = inscripcionesLocal;
-          asesoriasOriginal = [...inscripcionesLocal]; // Guardar una copia
+          asesoriasOriginal = [...inscripcionesLocal]; 
           renderizarAsesorias();
           renderizarCalendario();
         } else {
-          // No hay inscripciones
           document.getElementById('asesorias-container').innerHTML = `
             <p class="no-asesorias">
               No estás inscrito en ninguna asesoría. 
@@ -420,7 +409,6 @@
       contenedor.innerHTML = "";
       
       asesorias.forEach(inscripcion => {
-        // La asesoría puede estar en .asesoria o directamente en el objeto
         const a = inscripcion.asesoria || inscripcion;
         const imagenUrl = a.imagen || 'https://via.placeholder.com/150?text=Sin+Imagen';
         const horario = `${a.dia} ${a.inicio} - ${a.fin}`;
@@ -454,21 +442,17 @@
         grid.innerHTML += `<div class="day-name">${diasSemana[i]}</div>`;
       }
 
-      // Espacios en blanco para los días antes del primer día del mes
       for (let i = 0; i < primerDiaSemana; i++) {
         grid.innerHTML += `<div></div>`;
       }
 
-      // Obtener los días con asesorías
       const diasConAsesorias = {};
       asesorias.forEach(inscripcion => {
         const a = inscripcion.asesoria || inscripcion;
         if (a.dia) {
-          // Convertir nombre de día a número
           const dias = {'Lunes': 1, 'Martes': 2, 'Miércoles': 3, 'Miercoles': 3, 'Jueves': 4, 'Viernes': 5, 'Sábado': 6, 'Sabado': 6, 'Domingo': 0};
           const numeroDia = dias[a.dia];
           
-          // Marcar todos los días de la semana que coincidan
           for (let d = 1; d <= diasMes; d++) {
             const diaSemana = (primerDiaSemana + d - 1) % 7;
             if (diaSemana === numeroDia) {
@@ -478,7 +462,6 @@
         }
       });
 
-      // Generar el calendario
       for (let d = 1; d <= diasMes; d++) {
         const marcada = diasConAsesorias[d] ? 'marked' : '';
         grid.innerHTML += `<div class="day ${marcada}">${d}</div>`;
@@ -489,16 +472,14 @@
       if (!confirm("¿Estás seguro de que quieres cancelar esta inscripción?")) return;
       
       try {
-        // Actualizar localStorage directamente
         const inscripcionesLocal = JSON.parse(localStorage.getItem('inscripcionesAlumno') || '[]');
         const nuevasInscripciones = inscripcionesLocal.filter(i => i.id != id);
         localStorage.setItem('inscripcionesAlumno', JSON.stringify(nuevasInscripciones));
         
         console.log(`Inscripción ${id} cancelada. Quedan ${nuevasInscripciones.length} inscripciones.`);
         
-        // Actualizar la interfaz
         asesorias = nuevasInscripciones;
-        asesoriasOriginal = [...nuevasInscripciones]; // Actualizar también la copia original
+        asesoriasOriginal = [...nuevasInscripciones]; 
         renderizarAsesorias();
         renderizarCalendario();
         
@@ -513,18 +494,16 @@
       const modal = document.getElementById("accountModal");
       
       if (modal.classList.contains('show')) {
-        // Cerrar el modal
         modal.classList.remove("show");
         setTimeout(() => {
           modal.style.display = "none";
-        }, 300); // Tiempo igual a la duración de la transición
+        }, 300); 
       } else {
-        // Abrir el modal
-        // Asegurarnos de tener la información más actualizada
+
         actualizarInfoUsuario();
         
         modal.style.display = "block";
-        // Pequeño retardo para que la transición funcione
+
         setTimeout(() => {
           modal.classList.add("show");
         }, 10);
@@ -532,18 +511,16 @@
     }
     
     function logout() {
-      // Borrar datos locales
+
       localStorage.removeItem('inscripcionesAlumno');
-      localStorage.removeItem('usuario'); // Eliminar los datos del usuario
-      
-      // Intentar hacer logout en el servidor
+      localStorage.removeItem('usuario'); 
+
       fetch(`${API_URL}/api/logout`, {
         method: 'POST',
         credentials: 'include'
       }).catch(error => {
         console.error("Error al cerrar sesión en el servidor:", error);
       }).finally(() => {
-        // Redirigir a la página de login
         alert("Sesión cerrada. Redirigiendo al login...");
         window.location.href = "login.html";
       });
@@ -560,44 +537,37 @@
         alerta.classList.remove('error');
       }
       
-      // Ocultar después de 5 segundos
       setTimeout(() => {
         alerta.style.display = 'none';
       }, 5000);
     }
     
-    // Función para mostrar/ocultar el buscador
     function mostrarBuscador() {
       const searchContainer = document.getElementById('searchContainer');
       const estaMostrado = searchContainer.style.display === 'block';
       
       if (estaMostrado) {
-        // Si está visible, lo ocultamos y restauramos la lista original
         searchContainer.style.display = 'none';
         document.getElementById('searchInput').value = '';
-        asesorias = [...asesoriasOriginal]; // Restaurar desde la copia original
+        asesorias = [...asesoriasOriginal]; 
         renderizarAsesorias();
         renderizarCalendario();
       } else {
-        // Si está oculto, lo mostramos
         searchContainer.style.display = 'block';
         document.getElementById('searchInput').focus();
       }
     }
     
-    // Función para buscar asesorías
     function buscarAsesorias() {
       const termino = document.getElementById('searchInput').value.toLowerCase().trim();
       
       if (!termino) {
-        // Si el campo está vacío, mostrar todas las asesorías
         asesorias = [...asesoriasOriginal];
         renderizarAsesorias();
         renderizarCalendario();
         return;
       }
       
-      // Filtrar las asesorías que coinciden con el término de búsqueda
       asesorias = asesoriasOriginal.filter(inscripcion => {
         const a = inscripcion.asesoria || inscripcion;
         
@@ -609,11 +579,9 @@
         );
       });
       
-      // Mostrar resultados
       renderizarAsesorias();
       renderizarCalendario();
       
-      // Mostrar mensaje si no hay resultados
       if (asesorias.length === 0) {
         document.getElementById('asesorias-container').innerHTML = `
           <p class="no-asesorias">
@@ -624,7 +592,6 @@
       }
     }
     
-    // Función para resetear la búsqueda
     function resetearBusqueda() {
       document.getElementById('searchInput').value = '';
       asesorias = [...asesoriasOriginal];

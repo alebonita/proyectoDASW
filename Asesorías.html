@@ -114,7 +114,7 @@
   <div class="header">
     <button class="back-btn" onclick="volverAInicio()">← Volver</button>
     Asesorías Disponibles
-    <div></div> <!-- Espacio vacío para centrar el título -->
+    <div></div> 
   </div>
   
   <div id="alertMessage" class="alert"></div>
@@ -192,7 +192,6 @@
           </tr>
         `;
         
-        // Hacemos la solicitud sin filtro de tipo para obtener de cualquier colección
         const response = await fetch(`${API_URL}/api/asesorias`, {
           headers: {
             'Content-Type': 'application/json',
@@ -206,7 +205,6 @@
         const data = await response.json();
         console.log("Asesorías cargadas:", data);
         
-        // Guardamos las asesorías y renderizamos
         asesorias = data;
         renderizarAsesorias();
         
@@ -273,7 +271,6 @@
       const row = element.closest('tr').nextElementSibling;
       const dropdown = row.querySelector('.dropdown-content');
       
-      // Cerrar todos los dropdowns abiertos
       document.querySelectorAll('.dropdown-content').forEach(item => {
         if (item !== dropdown && item.style.display === 'block') {
           item.style.display = 'none';
@@ -286,13 +283,12 @@
 
     async function inscribirAsesoria(asesoriaId) {
       try {
-        // Verificar si hay un usuario actual
+
         if (!usuarioActual || !usuarioActual.id) {
           mostrarAlerta("Debes iniciar sesión para inscribirte a una asesoría", true);
           return;
         }
         
-        // Encontrar la asesoría en el array local
         const asesoria = asesorias.find(a => 
           (a.ID_asesoria && a.ID_asesoria.toString() === asesoriaId.toString()) || 
           (a._id && a._id.toString() === asesoriaId.toString())
@@ -305,7 +301,6 @@
         
         console.log("Inscribiendo a asesoría:", asesoria);
         
-        // Comprobar si ya está inscrito (verificando en localStorage)
         const inscripcionesLocal = JSON.parse(localStorage.getItem('inscripcionesAlumno') || '[]');
         const yaInscrito = inscripcionesLocal.some(inscripcion => {
           const a = inscripcion.asesoria;
@@ -316,33 +311,27 @@
         
         if (yaInscrito) {
           mostrarAlerta("Ya estás inscrito en esta asesoría", true);
-          // Actualizar la interfaz para mostrar como inscrito
           const button = event.target;
           button.innerText = 'Inscrito';
           button.disabled = true;
           return;
         }
         
-        // Crear nueva inscripción directamente en localStorage
         const nuevaInscripcion = {
           id: Date.now().toString(), // ID único basado en timestamp
           asesoria: asesoria,
           fecha: new Date().toISOString()
         };
-        
-        // Guardar en localStorage
+
         inscripcionesLocal.push(nuevaInscripcion);
         localStorage.setItem('inscripcionesAlumno', JSON.stringify(inscripcionesLocal));
         
-        // Actualizar la interfaz
         const button = event.target;
         button.innerText = 'Inscrito';
         button.disabled = true;
         
-        // Mostrar mensaje de éxito
         mostrarAlerta("¡Te has inscrito exitosamente a la asesoría!");
         
-        // Guardar en sessionStorage para mostrar mensaje en IndexAlumno
         sessionStorage.setItem('nuevaInscripcion', 'true');
         
         console.log("Inscripción guardada localmente:", nuevaInscripcion);
@@ -365,7 +354,6 @@
         alerta.classList.remove('error');
       }
       
-      // Ocultar después de 5 segundos
       setTimeout(() => {
         alerta.style.display = 'none';
       }, 5000);

@@ -112,13 +112,10 @@
                     return;
                 }
 
-                // Verifica la estructura de la respuesta
                 console.log('Respuesta del servidor:', data);
 
-                // Guarda datos en el navegador
                 localStorage.setItem('usuario', JSON.stringify(data));
 
-                // Asegúrate de que la propiedad se llama exactamente 'tipo_usuario'
                 const tipoUsuario = data.tipo_usuario || data.tipo || data.role;
 
                 if (!tipoUsuario) {
@@ -126,7 +123,6 @@
                     return;
                 }
 
-                // Redirección por tipo de usuario (convertido a minúsculas para evitar problemas)
                 switch(tipoUsuario.toLowerCase()) {
                     case 'admin':
                         window.location.href = 'admin.html';
@@ -139,7 +135,6 @@
                         break;
                     default:
                         alert('Tipo de usuario no reconocido: ' + tipoUsuario);
-                        // window.location.href = 'indexAlumno.html'; // Opcional: redirigir a una página por defecto
                 }
             } catch (error) {
                 console.error('Error:', error);

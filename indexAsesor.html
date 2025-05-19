@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asesorías</title>
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -27,7 +26,7 @@
 
     .container {
       padding: 20px;
-      max-width: 1200px; /* Aumentado para mejor distribución */
+      max-width: 1200px; 
       margin: 0 auto;
     }
 
@@ -87,31 +86,31 @@
 
     .card {
       display: flex;
-      flex-direction: row; /* Explícitamente horizontal */
+      flex-direction: row; 
       background-color: #CE93D8;
       color: white;
       margin-bottom: 20px;
       border-radius: 8px;
       overflow: hidden;
       position: relative;
-      min-height: 150px; /* Altura mínima para la tarjeta */
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Sombra suave */
+      min-height: 150px; 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
     }
 
     .card img {
       width: 40%;
       height: 100%;
       object-fit: cover;
-      flex-shrink: 0; /* Evita que la imagen se encoja */
+      flex-shrink: 0; 
     }
 
     .card-info {
       padding: 15px;
       width: 60%;
-      text-align: left; /* Alineación izquierda explícita */
+      text-align: left; 
       display: flex;
       flex-direction: column;
-      justify-content: center; /* Centra verticalmente el contenido */
+      justify-content: center; 
     }
 
     .card-info h3 {
@@ -140,7 +139,6 @@
       justify-content: center;
     }
 
-    /* Estilos para el buscador */
     .search-container {
       margin-bottom: 15px;
     }
@@ -152,7 +150,6 @@
       width: 200px;
     }
     
-    /* Estilos para el calendario */
     .calendar {
       border-radius: 10px;
       overflow: hidden;
@@ -193,7 +190,6 @@
       border-radius: 50%;
     }
 
-    /* INICIO: Estilos específicos para el modal del menú */
     .menu-btn {
       font-size: 24px;
       cursor: pointer;
@@ -214,12 +210,12 @@
       z-index: 1000;
       padding: 20px;
       box-sizing: border-box;
-      transform: translateX(100%); /* Comienza fuera de la pantalla */
+      transform: translateX(100%); 
       transition: transform 0.3s ease-in-out;
     }
     
     .menu-modal.show {
-      transform: translateX(0); /* Se desliza hacia la vista */
+      transform: translateX(0);
     }
 
     .menu-modal-content {
@@ -249,7 +245,7 @@
       font-size: 20px;
       cursor: pointer;
     }
-    /* FIN: Estilos específicos para el modal del menú */
+
   </style>
 </head>
 <body>
@@ -258,7 +254,6 @@
     <button class="menu-btn" onclick="toggleModal()">☰</button>
   </div>
 
-  <!-- Modal del menú (nuevo) -->
   <div id="accountModal" class="menu-modal">
     <span class="menu-close-btn" onclick="toggleModal()">&times;</span>
     <div class="menu-modal-content">
@@ -272,7 +267,6 @@
 
   <div class="container">
     <div class="row">
-      <!-- Asesorías (ahora a la izquierda) -->
       <div class="col-left">
         <div class="section">
           <div class="title">Asesorías</div>
@@ -288,7 +282,6 @@
         </div>
       </div>
 
-      <!-- Calendario (ahora a la derecha) -->
       <div class="col-right">
         <div class="section">
           <div class="title">Calendario</div>
@@ -301,7 +294,6 @@
     </div>
   </div>
 
-  <!-- Modal para agregar asesorías (ya existente) -->
   <div class="modal fade" id="asesoriaModal" tabindex="-1" aria-labelledby="asesoriaModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -360,16 +352,13 @@
     </div>
   </div>
 
-  <!-- Bootstrap JS y dependencias -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
-    // Variable global para almacenar las asesorías
     let asesorias = [];
     let usuarioActual = null;
     const API_URL = 'http://localhost:8000';
 
-    // Cargar asesorías al iniciar la página
     document.addEventListener('DOMContentLoaded', async() => {
       try {
         await cargarUsuarioActual();
@@ -383,7 +372,6 @@
 
     async function cargarUsuarioActual() {
       try {
-        // Intentar cargar los datos del usuario desde localStorage
         const usuarioData = localStorage.getItem('usuario');
         
         if (usuarioData) {
@@ -393,7 +381,6 @@
           return;
         }
         
-        // Si no hay datos en localStorage, intentar obtenerlos del servidor
         const response = await fetch(`${API_URL}/api/usuario-actual`, {
           credentials: 'include'
         });
@@ -406,8 +393,7 @@
         
         usuarioActual = await response.json();
         console.log("Usuario cargado desde el servidor:", usuarioActual);
-        
-        // Guardamos los datos en localStorage para futuras referencias
+
         localStorage.setItem('usuario', JSON.stringify(usuarioActual));
         
         actualizarInfoUsuario();
@@ -421,41 +407,33 @@
 
     function actualizarInfoUsuario() {
       if (!usuarioActual) return;
-      
-      // Actualizar la información en el header
+
       document.getElementById('userWelcome').textContent = `👤 Bienvenido ${usuarioActual.nombre}`;
-      
-      // Actualizar la información en el modal
+
       document.getElementById('userName').textContent = usuarioActual.nombre || 'No disponible';
       document.getElementById('userEmail').textContent = usuarioActual.correo || 'No disponible';
       document.getElementById('userType').textContent = usuarioActual.tipo_usuario ? 
         (usuarioActual.tipo_usuario.charAt(0).toUpperCase() + usuarioActual.tipo_usuario.slice(1)) : 'No disponible';
     }
 
-    // Toggle para el modal del menú
     function toggleModal() {
       const modal = document.getElementById("accountModal");
       
       if (modal.classList.contains('show')) {
-        // Cerrar el modal
         modal.classList.remove("show");
         setTimeout(() => {
           modal.style.display = "none";
-        }, 300); // Tiempo igual a la duración de la transición
+        }, 300); 
       } else {
-        // Abrir el modal
-        // Asegurarnos de tener la información más actualizada
         actualizarInfoUsuario();
         
         modal.style.display = "block";
-        // Pequeño retardo para que la transición funcione
         setTimeout(() => {
           modal.classList.add("show");
         }, 10);
       }
     }
 
-    // Función para cargar asesorías desde el servidor
     async function cargarAsesorias() {
       const contenedor = document.getElementById("asesorias-container");
       contenedor.innerHTML = '<p class="text-center">Cargando asesorías...</p>';
@@ -480,18 +458,15 @@
           contenedor.innerHTML = '<p class="text-center">No hay asesorías registradas aún</p>';
           return;
         }
-        
-        // Guardar en variable global y localStorage
+
         asesorias = data;
         localStorage.setItem('asesoriasBackup', JSON.stringify(data));
         
-        // Renderizar en pantalla
         renderizarAsesorias(data);
         
       } catch (error) {
         console.error("Error detallado al cargar asesorías:", error);
-        
-        // Intenta con datos de localStorage
+
         const backup = localStorage.getItem('asesoriasBackup');
         if (backup) {
           try {
@@ -504,8 +479,7 @@
             console.error("Error al parsear backup:", e);
           }
         }
-        
-        // Muestra mensaje de error
+
         contenedor.innerHTML = `
           <div class="alert alert-danger">
             <p><strong>Error al cargar asesorías:</strong> ${error.message}</p>
@@ -515,7 +489,6 @@
       }
     }
 
-    // Función para renderizar las asesorías en el DOM
     function renderizarAsesorias(asesorias) {
       const contenedor = document.getElementById("asesorias-container");
       contenedor.innerHTML = "";
@@ -529,11 +502,13 @@
         console.log("Renderizando asesoría:", a);
         const imagenUrl = a.imagen || 'https://via.placeholder.com/150?text=Sin+Imagen';
         
+        const idParaEliminar = a.ID_asesoria ? a.ID_asesoria : (a._id ? a._id : '');
+        
         contenedor.innerHTML += `
           <div class="card">
             <img src="${imagenUrl}" alt="${a.materia}" onerror="this.src='https://via.placeholder.com/150?text=Error'">
             <div class="card-info">
-              <button class="delete-btn" onclick="eliminarAsesoria('${a._id}')">✕</button>
+              <button class="delete-btn" onclick="eliminarAsesoria('${idParaEliminar}')">✕</button>
               <h3>${a.materia}</h3>
               <p><strong>Horario:</strong> ${a.dia} ${a.inicio} - ${a.fin}</p>
               <p><strong>Modalidad:</strong> ${a.modalidad}</p>
@@ -542,12 +517,10 @@
             </div>
           </div>`;
       });
-      
-      // Actualizar el calendario cada vez que se renderizan las asesorías
+
       renderizarCalendario();
     }
-    
-    // Función para renderizar el calendario
+
     function renderizarCalendario() {
       const mesActual = new Date();
       const diasMes = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0).getDate();
@@ -561,20 +534,16 @@
         grid.innerHTML += `<div class="day-name">${diasSemana[i]}</div>`;
       }
 
-      // Espacios en blanco para los días antes del primer día del mes
       for (let i = 0; i < primerDiaSemana; i++) {
         grid.innerHTML += `<div></div>`;
       }
 
-      // Obtener los días con asesorías
       const diasConAsesorias = {};
       asesorias.forEach(a => {
         if (a.dia) {
-          // Convertir nombre de día a número
           const dias = {'Lunes': 1, 'Martes': 2, 'Miercoles': 3, 'Miércoles': 3, 'Jueves': 4, 'Viernes': 5, 'Sábado': 6, 'Sabado': 6, 'Domingo': 0};
           const numeroDia = dias[a.dia];
           
-          // Marcar todos los días de la semana que coincidan
           for (let d = 1; d <= diasMes; d++) {
             const diaSemana = (primerDiaSemana + d - 1) % 7;
             if (diaSemana === numeroDia) {
@@ -584,21 +553,18 @@
         }
       });
 
-      // Generar el calendario
       for (let d = 1; d <= diasMes; d++) {
         const marcada = diasConAsesorias[d] ? 'marked' : '';
         grid.innerHTML += `<div class="day ${marcada}">${d}</div>`;
       }
     }
 
-    // Función para guardar una nueva asesoría
     async function guardarAsesoria() {
       const modal = bootstrap.Modal.getInstance(document.getElementById('asesoriaModal'));
       try {
         const formData = new FormData();
         const imagenInput = document.getElementById('imagenInput');
-        
-        // Asegúrate de que todos los campos requeridos estén presentes
+
         const materia = document.getElementById('materiaInput').value;
         const dia = document.getElementById('diaInput').value;
         const inicio = document.getElementById('inicioInput').value;
@@ -610,8 +576,7 @@
           return;
         }
 
-        // Usar el mismo nombre de campos que espera el backend
-        formData.append('ID_asesor', '1'); // Valor temporal
+        formData.append('ID_asesor', '1'); 
         formData.append('materia', materia);
         formData.append('descripcion', document.getElementById('descripcionInput').value);
         formData.append('modalidad', modalidad);
@@ -636,19 +601,15 @@
         
         const nuevaAsesoria = await response.json();
         console.log("Asesoría creada:", nuevaAsesoria);
-        
-        // Actualizar la lista en memoria
+
         asesorias.unshift(nuevaAsesoria);
         localStorage.setItem('asesoriasBackup', JSON.stringify(asesorias));
-        
-        // Volver a renderizar la lista
-        renderizarAsesorias(asesorias);
-        
-        // Limpiar y cerrar modal
+
         document.getElementById('asesoriaForm').reset();
         modal.hide();
-        
-        // Mostrar mensaje de éxito
+
+        renderizarAsesorias(asesorias);
+
         const contenedor = document.getElementById("asesorias-container");
         contenedor.insertAdjacentHTML('afterbegin', `
           <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -663,30 +624,64 @@
       }
     }
 
-    // Función para eliminar una asesoría
     async function eliminarAsesoria(id) {
       if (!confirm("¿Estás seguro de que quieres eliminar esta asesoría?")) return;
       
       try {
         console.log("Eliminando asesoría con ID:", id);
+
+        const contenedor = document.getElementById("asesorias-container");
+        const cargaHTML = `
+          <div id="eliminar-carga" class="alert alert-info alert-dismissible fade show" role="alert">
+            Eliminando asesoría...
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        `;
+        contenedor.insertAdjacentHTML('afterbegin', cargaHTML);
+
         const response = await fetch(`http://localhost:8000/api/asesorias/${id}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
 
+        const cargaElement = document.getElementById("eliminar-carga");
+        if (cargaElement) cargaElement.remove();
+
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Error al eliminar');
+          let errorMessage = 'Error al eliminar la asesoría';
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } catch (e) {
+            console.error("Error al procesar respuesta de error:", e);
+          }
+          throw new Error(errorMessage);
         }
 
-        // Actualizar la lista en memoria
-        asesorias = asesorias.filter(a => a._id !== id);
+        console.log("Asesoría eliminada en el servidor");
+
+        asesorias = asesorias.filter(a => {
+          if (a._id && a._id === id) {
+            return false; 
+          }
+          
+          if (a.ID_asesoria) {
+            if (a.ID_asesoria.toString() === id.toString() || 
+                parseInt(a.ID_asesoria) === parseInt(id)) {
+              return false; 
+            }
+          }
+          
+          return true; 
+        });
+        
+        console.log("Asesorías restantes después de filtrar:", asesorias.length);
         localStorage.setItem('asesoriasBackup', JSON.stringify(asesorias));
-        
-        // Volver a renderizar la lista
+
         renderizarAsesorias(asesorias);
-        
-        // Mostrar mensaje de éxito
-        const contenedor = document.getElementById("asesorias-container");
+
         contenedor.insertAdjacentHTML('afterbegin', `
           <div class="alert alert-success alert-dismissible fade show" role="alert">
             Asesoría eliminada correctamente
@@ -695,18 +690,16 @@
         `);
         
       } catch (error) {
-        console.error('Error al eliminar:', error);
+        console.error('Error al eliminar asesoría:', error);
         alert(`Error al eliminar: ${error.message}`);
       }
     }
 
-    // Función para mostrar/ocultar el buscador
     function mostrarBuscador() {
       const searchContainer = document.getElementById('searchContainer');
       searchContainer.style.display = searchContainer.style.display === 'none' ? 'block' : 'none';
     }
 
-    // Función para buscar asesorías
     function buscarAsesoria() {
       const consulta = document.getElementById('searchInput').value.toLowerCase();
       if (!consulta) {
@@ -721,21 +714,17 @@
       
       renderizarAsesorias(resultado);
     }
-    
-    // Función para cerrar sesión
+
     function cerrarSesion() {
-      // Borrar datos locales
       localStorage.removeItem('asesoriasBackup');
-      localStorage.removeItem('usuario'); // Eliminar los datos del usuario
-      
-      // Intentar hacer logout en el servidor
+      localStorage.removeItem('usuario'); 
+
       fetch(`${API_URL}/api/logout`, {
         method: 'POST',
         credentials: 'include'
       }).catch(error => {
         console.error("Error al cerrar sesión en el servidor:", error);
       }).finally(() => {
-        // Redirigir a la página de login
         alert("Sesión cerrada. Redirigiendo al login...");
         window.location.href = "login.html";
       });

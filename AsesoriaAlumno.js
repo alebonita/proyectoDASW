@@ -9,7 +9,6 @@ const asesoriaAlumnoSchema = new mongoose.Schema({
     materia:{
         type: String, 
         required:true,
-        // Removemos unique para evitar errores en pruebas
         unique: false
     },
     descripcion: {
@@ -48,12 +47,10 @@ const asesoriaAlumnoSchema = new mongoose.Schema({
     collection: 'asesoriasAlumno'
 });
 
-// Usamos un nombre diferente para el contador: 'asesoria_alumno_counter'
 asesoriaAlumnoSchema.plugin(AutoIncrement, { 
     inc_field: 'ID_asesoria', 
     startAt: 1,
     id: 'asesoria_alumno_counter' // Nombre único para este contador
 });
 
-// Nombramos el modelo como 'AsesoriaAlumno' para diferenciarlo de 'Asesoria'
 module.exports = mongoose.model('AsesoriaAlumno', asesoriaAlumnoSchema);
