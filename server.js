@@ -1,6 +1,4 @@
 'use strict';
-
-require('dotenv').config(); // Añadido para manejo de variables de entorno
 const express = require("express");
 const mongoose = require("mongoose");
 const connectDB = require("./db");
@@ -9,25 +7,22 @@ const Asesoria = require("./Asesoria");
 const AsesoriaAlumno = require("./AsesoriaAlumno"); 
 const AutoIncrement = require('mongoose-sequence')(mongoose);
 const app = express();
-const port = process.env.PORT || 8000; // Modificado para Render
+const port = 8000;
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
-const cors = require('cors');
 
+const cors = require('cors');
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://tu-app-frontend.onrender.com'] 
-    : '*',
+  origin: '*', 
   credentials: true
 })); 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
-// Configuración de subida de archivos
 const uploadDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -56,13 +51,8 @@ const upload = multer({
   }
 });
 
-// Conexión a MongoDB con manejo mejorado de errores
-connectDB()
-  .then(() => console.log('MongoDB conectado exitosamente'))
-  .catch(err => {
-    console.error('Error de conexión a MongoDB:', err);
-    process.exit(1);
-  });
+// Conexión a MongoDB
+connectDB();
 
 // =========== MODELO DE INSCRIPCIÓN ===========
 const inscripcionSchema = new mongoose.Schema({
@@ -86,6 +76,7 @@ const inscripcionSchema = new mongoose.Schema({
 });
 
 const Inscripcion = mongoose.model('Inscripcion', inscripcionSchema);
+
 // =========== RUTAS DE AUTENTICACIÓN ===========
 
 app.post('/api/registrar', async (req, res) => {
@@ -532,49 +523,4 @@ app.get('/', (req, res) => res.send('Sistema de Asesorías'));
 
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
-});
-
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    message: 'Servidor funcionando correctamente',
-    timestamp: new Date()
-  });
-});
-
-// Ruta principal mejorada
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Sistema de Asesorías Académicas',
-    environment: process.env.NODE_ENV || 'development',
-    api_docs: '/api',
-    health_check: '/health'
-  });
-});
-
-// Manejador de errores mejorado
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: 'Algo salió mal en el servidor',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
-  });
-});
-
-// Iniciar servidor con manejo mejorado
-const server = app.listen(port, () => {
-  console.log(`Servidor corriendo en el puerto ${port}`);
-  console.log(`Entorno: ${process.env.NODE_ENV || 'development'}`);
-});
-
-// Manejo de cierre para producción
-process.on('SIGTERM', () => {
-  console.log('Recibido SIGTERM. Cerrando servidor...');
-  server.close(() => {
-    console.log('Servidor cerrado');
-    mongoose.connection.close(false, () => {
-      console.log('Conexión a MongoDB cerrada');
-      process.exit(0);
-    });
-  });
 });
